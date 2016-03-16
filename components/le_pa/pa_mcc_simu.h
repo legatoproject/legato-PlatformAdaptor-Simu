@@ -45,5 +45,16 @@ void pa_mccSimu_ReportCallTerminationReason
     int32_t                     termCode
 );
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function sets the voice dial status.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_mccSimu_SetVoiceDialResult
+(
+    le_result_t voiceDialResult
+);
+
 #endif // PA_MCC_SIMU_H_INCLUDE_GUARD
 

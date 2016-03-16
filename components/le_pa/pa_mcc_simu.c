@@ -34,6 +34,13 @@ static le_event_HandlerRef_t CallEventHandlerRef = NULL;
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Voice dial result.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_result_t VoiceDialResult = LE_OK;
+
+//--------------------------------------------------------------------------------------------------
+/**
  * simu init
  *
  **/
@@ -148,6 +155,20 @@ void pa_mcc_ClearCallEventHandler
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * This function sets the voice dial status.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_mccSimu_SetVoiceDialResult
+(
+    le_result_t voiceDialResult
+)
+{
+    VoiceDialResult = voiceDialResult;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * This function must be called to set a voice call.
  *
  * @return
@@ -165,7 +186,7 @@ le_result_t pa_mcc_VoiceDial
 )
 {
     *callIdPtr = CURRENT_CALL_ID;
-    return LE_OK;
+    return VoiceDialResult;
 }
 
 //--------------------------------------------------------------------------------------------------
