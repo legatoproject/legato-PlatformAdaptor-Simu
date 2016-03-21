@@ -155,5 +155,16 @@ void pa_simSimu_SetExpectedStkConfirmationCommand
     bool  confirmation ///< [IN] true to accept, false to reject
 );
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set SimAccessTest variable
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_SetSimAccessTest
+(
+    bool testInProgress
+);
+
 #endif // PA_SIM_SIMU_H_INCLUDE_GUARD
 

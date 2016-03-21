@@ -29,6 +29,7 @@ static bool StkConfirmation = false;
 static le_event_Id_t SimToolkitEvent;
 static pa_sim_NewStateHdlrFunc_t SimStateHandler;
 static le_mem_PoolRef_t SimStateEventPool;
+static bool SimAccessTest = false;
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -769,6 +770,20 @@ le_result_t pa_sim_CloseLogicalChannel
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Set SimAccessTest variable
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_SetSimAccessTest
+(
+    bool testInProgress
+)
+{
+    SimAccessTest = testInProgress;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * This function must be called to send an APDU message to the SIM card.
  *
  * @return
@@ -785,6 +800,18 @@ le_result_t pa_sim_SendApdu
     size_t*        lenPtr   ///< [IN,OUT] APDU message response length in bytes.
 )
 {
+    if (SimAccessTest)
+    {
+        uint8_t expectedApdu[]={ 0x00, 0xA4, 0x00, 0x0C, 0x02, 0x6F, 0x07 };
+        uint8_t result[] = {0x90, 0x00};
+
+        LE_ASSERT( apduLen == sizeof(expectedApdu) );
+        LE_ASSERT( memcmp(apduPtr, expectedApdu, apduLen) == 0 );
+        LE_ASSERT( *lenPtr >= sizeof(result) );
+        memcpy(respPtr, result, sizeof(result));
+        *lenPtr = sizeof(result);
+    }
+
     return LE_OK;
 }
 
@@ -898,4 +925,70 @@ le_result_t pa_simSimu_Init
     return LE_OK;
 }
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to send a generic command to the SIM.
+ *
+ * @return
+ *      - LE_OK             Function succeeded.
+ *      - LE_FAULT          The function failed.
+ *      - LE_BAD_PARAMETER  A parameter is invalid.
+ *      - LE_NOT_FOUND      - The function failed to select the SIM card for this operation
+ *                          - The requested SIM file is not found
+ *      - LE_OVERFLOW       Response buffer is too small to copy the SIM answer.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sim_SendCommand
+(
+    le_sim_Command_t command,
+        ///< [IN]
+        ///< The SIM command.
 
+    const char* fileIdentifier,
+        ///< [IN]
+        ///< File identifier
+
+    uint8_t p1,
+        ///< [IN]
+        ///< Parameter P1 passed to the SIM
+
+    uint8_t p2,
+        ///< [IN]
+        ///< Parameter P2 passed to the SIM
+
+    uint8_t p3,
+        ///< [IN]
+        ///< Parameter P3 passed to the SIM
+
+    const uint8_t* dataPtr,
+        ///< [IN]
+        ///< data command.
+
+    size_t dataNumElements,
+        ///< [IN]
+
+    const char* path,
+        ///< [IN]
+        ///< path of the elementary file
+
+    uint8_t* sw1Ptr,
+        ///< [OUT]
+        ///< SW1 received from the SIM
+
+    uint8_t* sw2Ptr,
+        ///< [OUT]
+        ///< SW2 received from the SIM
+
+    uint8_t* responsePtr,
+        ///< [OUT]
+        ///< SIM response.
+
+    size_t* responseNumElementsPtr
+        ///< [INOUT]
+)
+{
+    *sw1Ptr = 0x90;
+    *sw2Ptr = 0x00;
+
+    return LE_OK;
+}
