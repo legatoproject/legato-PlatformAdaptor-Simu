@@ -11,70 +11,68 @@
 #include "pa_temp.h"
 #include "pa_temp_simu.h"
 
+
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Sensor context structure.
+ */
+//--------------------------------------------------------------------------------------------------
+typedef struct {
+    le_temp_Handle_t    leHandle;
+    char                name[LE_TEMP_SENSOR_NAME_MAX_BYTES];
+    int16_t             temperature;        ///<  Temperature in degrees Celsius.
+    bool                hiCriticalValid;    ///<  true if High Critical threshold is set.
+    int16_t             hiCritical;         ///<  High Critical threshold.
+} PaSensorContext_t;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Temperature threshold report structure.
+ */
+//--------------------------------------------------------------------------------------------------
+typedef struct
+{
+    le_temp_Handle_t    leHandle;
+    char                event[LE_TEMP_THRESHOLD_NAME_MAX_BYTES];
+} ThresholdEventReport_t;
+
+
+static le_result_t          ReturnCode = LE_OK;
+static le_event_Id_t        ThresholdEventId;
+static le_mem_PoolRef_t     ThresholdReportPool;
+static PaSensorContext_t    PaSensorHandle;
+
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * The first-layer temperature Handler.
+ */
+//--------------------------------------------------------------------------------------------------
+static void FirstLayerTemperatureHandler
+(
+    void* reportPtr,
+    void* secondLayerHandlerFunc
+)
+{
+    ThresholdEventReport_t*             tempPtr = reportPtr;
+    pa_temp_ThresholdHandlerFunc_t      clientHandlerFunc = secondLayerHandlerFunc;
+
+    clientHandlerFunc((le_temp_Handle_t)tempPtr->leHandle,
+                      tempPtr->event,
+                      le_event_GetContextPtr());
+
+    // The reportPtr is a reference counted object, so need to release it
+    le_mem_Release(reportPtr);
+}
+
 //--------------------------------------------------------------------------------------------------
 //                                       Public declarations
 //--------------------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Storage structure for radio thresholds.
- */
-//--------------------------------------------------------------------------------------------------
-typedef struct {
-    int32_t hiWarningTemp;  ///< The high warning temperature threshold in degree celsius.
-    int32_t hiCriticalTemp; ///< The high critical temperature threshold in degree celsius.
-}
-RadioThresholds_t;
-
-//--------------------------------------------------------------------------------------------------
-/**
- * Storage structure for platform thresholds.
- */
-//--------------------------------------------------------------------------------------------------
-typedef struct {
-    int32_t lowWarningTemp;  ///< The low warning temperature threshold in degree celsius.
-    int32_t hiWarningTemp;   ///< The high warning temperature threshold in degree celsius.
-    int32_t lowCriticalTemp; ///< The low critical temperature threshold in degree celsius.
-    int32_t hiCriticalTemp;  ///< The high critical temperature threshold in degree celsius.
-}
-PlatformThresholds_t;
-
-//--------------------------------------------------------------------------------------------------
-/**
- * Storage structure for thresholds.
- */
-//--------------------------------------------------------------------------------------------------
-typedef struct {
-    RadioThresholds_t radio;
-    PlatformThresholds_t platform;
-}
-Thresholds_t;
-
-//--------------------------------------------------------------------------------------------------
-/**
- * Global structure to store active thresholds.
- */
-//--------------------------------------------------------------------------------------------------
-static Thresholds_t Thresholds = {
-    .radio = {
-        .hiWarningTemp = PA_SIMU_TEMP_DEFAULT_RADIO_HIGH_WARN,
-        .hiCriticalTemp = PA_SIMU_TEMP_DEFAULT_RADIO_HIGH_CRIT,
-    },
-    .platform = {
-        .lowWarningTemp = PA_SIMU_TEMP_DEFAULT_PLATFORM_LOW_WARN,
-        .hiWarningTemp = PA_SIMU_TEMP_DEFAULT_PLATFORM_HIGH_WARN,
-        .lowCriticalTemp = PA_SIMU_TEMP_DEFAULT_PLATFORM_LOW_CRIT,
-        .hiCriticalTemp = PA_SIMU_TEMP_DEFAULT_PLATFORM_HIGH_CRIT,
-    },
-};
-
-static le_result_t ReturnCode = LE_OK;
-static le_event_Id_t TemperatureThresholdEventId;
-static le_mem_PoolRef_t TemperatureThresholdEventPool;
-
-//--------------------------------------------------------------------------------------------------
-/**
- * Set the stub return code.
+ * Set the stubbed return code.
  *
  */
 //--------------------------------------------------------------------------------------------------
@@ -94,66 +92,114 @@ void pa_tempSimu_SetReturnCode
 //--------------------------------------------------------------------------------------------------
 void pa_tempSimu_TriggerEventReport
 (
-    le_temp_ThresholdStatus_t status
+    const char*  thresholdPtr  ///< [IN] Name of the threshold.
 )
 {
-    le_temp_ThresholdStatus_t * tempEventPtr = le_mem_ForceAlloc(TemperatureThresholdEventPool);
+    ThresholdEventReport_t* tempEventPtr = le_mem_ForceAlloc(ThresholdReportPool);
 
-    *tempEventPtr = status;
+    tempEventPtr->leHandle = PaSensorHandle.leHandle;
 
-    le_event_ReportWithRefCounting(TemperatureThresholdEventId, tempEventPtr);
+    strncpy(tempEventPtr->event, thresholdPtr, LE_TEMP_THRESHOLD_NAME_MAX_LEN);
+
+    le_event_ReportWithRefCounting(ThresholdEventId, tempEventPtr);
 }
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Get the Radio temperature level in degree celsius.
+ * Request a new handle for a temperature sensor
  *
  * @return
  *      - LE_OK            The function succeeded.
- *      - LE_FAULT         The function failed to get the temperature.
+ *      - LE_FAULT         The function failed.
  */
 //--------------------------------------------------------------------------------------------------
-le_result_t pa_temp_GetRadioTemperature
+le_result_t pa_temp_Request
 (
-    int32_t* radioTempPtr
-        ///< [OUT]
-        ///< [OUT] The Radio temperature level in degree celsius.
+    const char*         sensorPtr,  ///< [IN] Name of the temperature sensor.
+    le_temp_Handle_t    leHandle,   ///< [IN] Sensor context in LE side, opaque type in PA side
+    pa_temp_Handle_t*   paHandlePtr ///< [OUT] Sensor context in PA side, opaque type in LE side
 )
 {
     if (ReturnCode == LE_OK)
     {
-        *radioTempPtr = PA_SIMU_TEMP_DEFAULT_RADIO_TEMP;
-    }
-
-    return ReturnCode;
-}
-
-//--------------------------------------------------------------------------------------------------
-/**
- * Get the Platform temperature level in degree celsius.
- *
- * @return
- *      - LE_OK            The function succeeded.
- *      - LE_FAULT         The function failed to get the temperature.
- */
-//--------------------------------------------------------------------------------------------------
-le_result_t pa_temp_GetPlatformTemperature
-(
-    int32_t* platformTempPtr
-        ///< [OUT]
-        ///< [OUT] The Platform temperature level in degree celsius.
-)
-{
-    if (ReturnCode == LE_OK)
-    {
-        *platformTempPtr = PA_SIMU_TEMP_DEFAULT_PLATFORM_TEMP;
+        PaSensorHandle.leHandle = leHandle;
+        *paHandlePtr = (pa_temp_Handle_t)&PaSensorHandle;
     }
     return ReturnCode;
 }
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Set the Radio warning and critical temperature thresholds in degree celsius.
+ * Get the handle of a temperature sensor
+ *
+ * @return
+ *      - LE_OK            The function succeeded.
+ *      - LE_FAULT         The function failed.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_temp_GetHandle
+(
+    const char*         sensorPtr,  ///< [IN] Name of the temperature sensor.
+    le_temp_Handle_t*   leHandlePtr ///< [OUT] Sensor context in LE side, opaque type in PA side
+)
+{
+    if (ReturnCode == LE_OK)
+    {
+        *leHandlePtr = PaSensorHandle.leHandle;
+    }
+    return ReturnCode;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Retrieve the temperature sensor's name from its handle.
+ *
+ * @return
+ *      - LE_OK            The function succeeded.
+ *      - LE_OVERFLOW      The name length exceed the maximum length.
+ *      - LE_FAULT         The function failed.
+ */
+//--------------------------------------------------------------------------------------------------
+LE_SHARED le_result_t pa_temp_GetSensorName
+(
+    pa_temp_Handle_t    paHandle, ///< [IN] Handle of the temperature sensor.
+    char*               namePtr,  ///< [OUT] Name of the temperature sensor.
+    size_t              len       ///< [IN] The maximum length of the sensor name.
+)
+{
+    if (ReturnCode == LE_OK)
+    {
+        strncpy(namePtr, PaSensorHandle.name, len);
+    }
+    return ReturnCode;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the temperature in degree Celsius.
+ *
+ * @return
+ *      - LE_OK            The function succeeded.
+ *      - LE_FAULT         The function failed to get the temperature.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_temp_GetTemperature
+(
+    pa_temp_Handle_t    paHandle,      ///< [IN] Handle of the temperature sensor.
+    int32_t*            temperaturePtr ///< [OUT] Temperature in degree Celsius.
+)
+{
+    PaSensorContext_t* sensorCtxPtr = (PaSensorContext_t*)paHandle;
+    if (ReturnCode == LE_OK)
+    {
+        *temperaturePtr = sensorCtxPtr->temperature;
+    }
+    return ReturnCode;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the Radio warning and critical temperature thresholds in degree Celsius.
  *  When thresholds temperature are reached, a temperature event is triggered.
  *
  * @return
@@ -161,130 +207,61 @@ le_result_t pa_temp_GetPlatformTemperature
  *      - LE_FAULT         The function failed to set the thresholds.
  */
 //--------------------------------------------------------------------------------------------------
-le_result_t pa_temp_SetRadioThresholds
+le_result_t pa_temp_SetThreshold
 (
-    int32_t hiWarningTemp,
-        ///< [IN]
-        ///< [IN] The high warning temperature threshold in degree celsius.
-
-    int32_t hiCriticalTemp
-        ///< [IN]
-        ///< [IN] The high critical temperature threshold in degree celsius.
+    pa_temp_Handle_t    paHandle,      ///< [IN] Handle of the temperature sensor.
+    const char*         thresholdPtr,  ///< [IN] Name of the threshold.
+    int32_t             temperature    ///< [IN] Temperature threshold in degree Celsius.
 )
 {
+    PaSensorContext_t* sensorCtxPtr = (PaSensorContext_t*)paHandle;
     if (ReturnCode == LE_OK)
     {
-        Thresholds.radio.hiWarningTemp = hiWarningTemp;
-        Thresholds.radio.hiCriticalTemp = hiCriticalTemp;
+        sensorCtxPtr->hiCritical = temperature;
+        sensorCtxPtr->hiCriticalValid = true;
     }
     return ReturnCode;
 }
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Get the Radio warning and critical temperature thresholds in degree celsius.
+ * Get the Radio warning and critical temperature thresholds in degree Celsius.
  *
  * @return
  *      - LE_OK            The function succeeded.
  *      - LE_FAULT         The function failed to get the thresholds.
  */
 //--------------------------------------------------------------------------------------------------
-le_result_t pa_temp_GetRadioThresholds
+le_result_t pa_temp_GetThreshold
 (
-    int32_t* hiWarningTempPtr,
-        ///< [OUT]
-        ///< [OUT] The high warning temperature threshold in degree celsius.
-
-    int32_t* hiCriticalTempPtr
-        ///< [OUT]
-        ///< [OUT] The high critical temperature threshold
-        ///<  in degree celsius.
+    pa_temp_Handle_t    paHandle,      ///< [IN] Handle of the temperature sensor.
+    const char*         thresholdPtr,  ///< [IN] Name of the threshold.
+    int32_t*            temperaturePtr ///< [OUT] Temperature in degree Celsius.
 )
 {
+    PaSensorContext_t* sensorCtxPtr = (PaSensorContext_t*)paHandle;
     if (ReturnCode == LE_OK)
     {
-        *hiWarningTempPtr = Thresholds.radio.hiWarningTemp;
-        *hiCriticalTempPtr = Thresholds.radio.hiCriticalTemp;
-    }
-    return ReturnCode;
-}
-
-
-//--------------------------------------------------------------------------------------------------
-/**
- * Set the Platform warning and critical temperature thresholds in degree celsius.
- *  When thresholds temperature are reached, a temperature event is triggered.
- *
- * @return
- *      - LE_OK            The function succeeded.
- *      - LE_FAULT         The function failed to set the thresholds.
- */
-//--------------------------------------------------------------------------------------------------
-le_result_t pa_temp_SetPlatformThresholds
-(
-    int32_t lowCriticalTemp,
-        ///< [IN]
-        ///< [IN] The low critical temperature threshold in degree celsius.
-
-    int32_t lowWarningTemp,
-        ///< [IN]
-        ///< [IN] The low warning temperature threshold in degree celsius.
-
-    int32_t hiWarningTemp,
-        ///< [IN]
-        ///< [IN] The high warning temperature threshold in degree celsius.
-
-    int32_t hiCriticalTemp
-        ///< [IN]
-        ///< [IN] The high critical temperature threshold in degree celsius.
-)
-{
-    if (ReturnCode == LE_OK)
-    {
-        Thresholds.platform.lowWarningTemp = lowWarningTemp;
-        Thresholds.platform.hiWarningTemp = hiWarningTemp;
-        Thresholds.platform.lowCriticalTemp = lowCriticalTemp;
-        Thresholds.platform.hiCriticalTemp = hiCriticalTemp;
+        *temperaturePtr = sensorCtxPtr->hiCritical;
     }
     return ReturnCode;
 }
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Get the Platform warning and critical temperature thresholds in degree celsius.
+ * Start the temperature monitoring with the temperature thresholds configured by
+ * le_temp_SetThreshold() function.
  *
  * @return
  *      - LE_OK            The function succeeded.
- *      - LE_FAULT         The function failed to get the thresholds.
+ *      - LE_FAULT         The function failed to apply the thresholds.
  */
 //--------------------------------------------------------------------------------------------------
-le_result_t pa_temp_GetPlatformThresholds
+le_result_t pa_temp_StartMonitoring
 (
-    int32_t* lowCriticalTempPtr,
-        ///< [OUT]
-        ///< [OUT] The low critical temperature threshold in degree celsius.
-
-    int32_t* lowWarningTempPtr,
-        ///< [OUT]
-        ///< [OUT] The low warning temperature threshold in degree celsius.
-
-    int32_t* hiWarningTempPtr,
-        ///< [OUT]
-        ///< [OUT] The high warning temperature threshold in degree celsius.
-
-    int32_t* hiCriticalTempPtr
-        ///< [OUT]
-        ///< [OUT] The high critical temperature threshold
-        ///<  in degree celsius.
+    void
 )
 {
-    if (ReturnCode == LE_OK)
-    {
-        *lowWarningTempPtr = Thresholds.platform.lowWarningTemp;
-        *hiWarningTempPtr = Thresholds.platform.hiWarningTemp;
-        *lowCriticalTempPtr = Thresholds.platform.lowCriticalTemp;
-        *hiCriticalTempPtr = Thresholds.platform.hiCriticalTemp;
-    }
     return ReturnCode;
 }
 
@@ -298,16 +275,19 @@ le_result_t pa_temp_GetPlatformThresholds
 //--------------------------------------------------------------------------------------------------
 le_event_HandlerRef_t* pa_temp_AddTempEventHandler
 (
-    pa_temp_ThresholdInd_HandlerFunc_t   msgHandler
+    pa_temp_ThresholdHandlerFunc_t  handlerFunc, ///< [IN] The handler function.
+    void*                           contextPtr   ///< [IN] The context to be given to the handler.
 )
 {
     le_event_HandlerRef_t  handlerRef = NULL;
 
-    if ( msgHandler != NULL )
+    if (handlerFunc != NULL)
     {
-        handlerRef = le_event_AddHandler( "ThresholdStatushandler",
-                             TemperatureThresholdEventId,
-                            (le_event_HandlerFunc_t) msgHandler);
+        handlerRef = le_event_AddLayeredHandler("ThresholdStatushandler",
+                                                ThresholdEventId,
+                                                FirstLayerTemperatureHandler,
+                                                (le_event_HandlerFunc_t)handlerFunc);
+        le_event_SetContextPtr (handlerRef, contextPtr);
     }
     else
     {
@@ -317,11 +297,10 @@ le_event_HandlerRef_t* pa_temp_AddTempEventHandler
     return (le_event_HandlerRef_t*) handlerRef;
 }
 
-
 //--------------------------------------------------------------------------------------------------
 /**
  *
- * This function is used to intialize the PA Temperature
+ * This function is used to initialize the PA Temperature
  *
  * @return
  * - LE_OK if successful.
@@ -334,10 +313,16 @@ le_result_t pa_temp_Init
 )
 {
     // Create the event for signaling user handlers.
-    TemperatureThresholdEventId = le_event_CreateIdWithRefCounting("TemperatureStatusEvent");
+    ThresholdEventId = le_event_CreateIdWithRefCounting("TempThresholdsEvent");
 
-    TemperatureThresholdEventPool = le_mem_CreatePool("TemperatureStatusEventPool",
-                    sizeof(le_temp_ThresholdStatus_t));
+    ThresholdReportPool = le_mem_CreatePool("ThresholdReportPool",
+                                            sizeof(ThresholdEventReport_t));
+
+    PaSensorHandle.leHandle = NULL;
+    PaSensorHandle.hiCritical = PA_SIMU_TEMP_DEFAULT_HI_CRIT;
+    PaSensorHandle.hiCriticalValid = false;
+    PaSensorHandle.temperature = PA_SIMU_TEMP_DEFAULT_TEMPERATURE;
+    strncpy(PaSensorHandle.name, PA_SIMU_TEMP_SENSOR, LE_TEMP_SENSOR_NAME_MAX_BYTES);
 
     return LE_OK;
 }
