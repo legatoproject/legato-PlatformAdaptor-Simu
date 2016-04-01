@@ -7,7 +7,6 @@
  */
 
 #include "legato.h"
-#include "pa.h"
 #include "pa_ecall.h"
 #include "pa_simu.h"
 

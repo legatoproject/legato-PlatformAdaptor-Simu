@@ -5,7 +5,6 @@
  */
 
 #include "legato.h"
-#include "pa.h"
 
 #include "interfaces.h"
 #include "pa_simu.h"
@@ -16,18 +15,16 @@
 #include "pa_temp.h"
 #include "pa_antenna.h"
 
+
 //--------------------------------------------------------------------------------------------------
 /**
- * This function Initialize the platform adapter layer.
+ * Component initializer automatically called by the application framework when the process starts.
  *
- * @note
- * It is a blocking function.
- */
+ * This is not used because the PA component is shared by two different processes (the Modem Daemon
+ * and the Positioning Daemon), and each needs different QMI services initialized.
+ **/
 //--------------------------------------------------------------------------------------------------
-void le_pa_Init
-(
-    void
-)
+COMPONENT_INIT
 {
     le_result_t res;
 
@@ -63,16 +60,4 @@ void le_pa_Init
 
     res = pa_antenna_Init();
     LE_FATAL_IF(res != LE_OK, "PA Antenna Failed");
-}
-
-//--------------------------------------------------------------------------------------------------
-/**
- * Component initializer automatically called by the application framework when the process starts.
- *
- * This is not used because the PA component is shared by two different processes (the Modem Daemon
- * and the Positioning Daemon), and each needs different QMI services initialized.
- **/
-//--------------------------------------------------------------------------------------------------
-COMPONENT_INIT
-{
 }
