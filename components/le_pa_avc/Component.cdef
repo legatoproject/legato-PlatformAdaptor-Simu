@@ -1,9 +1,3 @@
-
-requires:
-{
-    component: { $LEGATO_ROOT/components/airVantage/platformAdaptor/default/le_pa_avc_default }
-}
-
 sources:
 {
     pa_avc_simu.c
@@ -11,5 +5,5 @@ sources:
 
 cflags:
 {
-    -I${LEGATO_ROOT}/components/airVantage/platformAdaptor/inc
+    -I$LEGATO_ROOT/components/airVantage/platformAdaptor/inc
 }
