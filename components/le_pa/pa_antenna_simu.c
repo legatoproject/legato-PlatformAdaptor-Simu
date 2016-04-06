@@ -103,6 +103,7 @@ le_result_t pa_antenna_GetOpenLimit
  *
  * @return
  * - LE_OK on success
+ * - LE_UNSUPPORTED request not supported
  * - LE_FAULT on failure
  *
  */
