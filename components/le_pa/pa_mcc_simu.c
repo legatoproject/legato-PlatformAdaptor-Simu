@@ -41,6 +41,13 @@ static le_result_t VoiceDialResult = LE_OK;
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Call waiting status
+ */
+//--------------------------------------------------------------------------------------------------
+static bool CallWaitingStatus = LE_OFF;
+
+//--------------------------------------------------------------------------------------------------
+/**
  * simu init
  *
  **/
@@ -239,6 +246,65 @@ le_result_t pa_mcc_HangUp
 le_result_t pa_mcc_HangUpAll
 (
     void
+)
+{
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function activates or deactivates the call waiting service.
+ *
+ * @return
+ *     - LE_OK        The function succeed.
+ *     - LE_FAULT     The function failed.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mcc_SetCallWaitingService
+(
+    bool active
+        ///< [IN] The call waiting activation.
+)
+{
+    CallWaitingStatus = active;
+    return LE_OK;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function gets the call waiting service status.
+ *
+ * @return
+ *     - LE_OK        The function succeed.
+ *     - LE_FAULT     The function failed.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mcc_GetCallWaitingService
+(
+    bool* activePtr
+        ///< [OUT] The call waiting activation.
+)
+{
+    *activePtr = CallWaitingStatus;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function activates the specified call. Other calls are placed on hold.
+ *
+ * @return
+ *     - LE_OK        The function succeed.
+ *     - LE_FAULT     The function failed.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mcc_ActivateCall
+(
+    uint8_t  callId     ///< [IN] The active call ID
 )
 {
     return LE_OK;
