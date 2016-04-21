@@ -270,23 +270,6 @@ le_result_t pa_ecall_Start
 
 //--------------------------------------------------------------------------------------------------
 /**
- * This function must be called to stop the eCall.
- *
- * @return
- *      LE_OK if successful.
- *      LE_FAULT if unsuccessful.
- */
-//--------------------------------------------------------------------------------------------------
-le_result_t pa_ecall_Stop
-(
-    void
-)
-{
-    return LE_OK;
-}
-
-//--------------------------------------------------------------------------------------------------
-/**
  * This function must be called to end a eCall.
  *
  * @return LE_FAULT  The function failed.
