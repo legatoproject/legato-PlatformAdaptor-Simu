@@ -11,6 +11,7 @@
 #include "interfaces.h"
 #include "pa_mdc_simu.h"
 #include "pa_mrc.h"
+#include <netinet/in.h>
 
 typedef struct
 {
@@ -878,6 +879,30 @@ le_result_t pa_mdc_GetDNSAddresses
         strcpy( dns2AddrStr, profilePtr->dns2AddrStr[ipVersion] );
 
         return LE_OK;
+    }
+
+    if (ipVersion == LE_MDMDEFS_IPV4)
+    {
+        if ( dns1AddrStrSize < INET_ADDRSTRLEN)
+        {
+               return LE_OVERFLOW;
+        }
+        if ( dns2AddrStrSize < INET_ADDRSTRLEN)
+        {
+               return LE_OVERFLOW;
+        }
+    }
+
+    if (ipVersion == LE_MDMDEFS_IPV6)
+    {
+        if ( dns1AddrStrSize < INET6_ADDRSTRLEN)
+        {
+                return LE_OVERFLOW;
+        }
+        if ( dns2AddrStrSize < INET6_ADDRSTRLEN)
+        {
+               return LE_OVERFLOW;
+        }
     }
 
     return LE_FAULT;
