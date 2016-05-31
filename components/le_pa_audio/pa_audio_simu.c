@@ -707,21 +707,6 @@ le_result_t pa_audio_PlaySignallingDtmf
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Return true if an in-built Codec is present.
- *
- * @return true  if an in-built Codec is present, false otherwise.
- */
-//--------------------------------------------------------------------------------------------------
-bool pa_audio_IsCodecPresent
-(
-    void
-)
-{
-    return true;
-}
-
-//--------------------------------------------------------------------------------------------------
-/**
  * This function must be called to mute or unmute the interface
  *
  * @return LE_FAULT         The function failed.
