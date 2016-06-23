@@ -25,6 +25,8 @@
 static le_event_Id_t          EventNewSmsId;
 static le_event_HandlerRef_t  NewSMSHandlerRef;
 
+static le_event_Id_t          StorageStatusEvent;
+
 static int SmsServerListenFd;
 static le_fdMonitor_Ref_t SmsServerMonitorRef;
 
@@ -158,6 +160,46 @@ le_result_t pa_sms_ClearNewMsgHandler
     NewSMSHandlerRef = NULL;
     return LE_OK;
 }
+
+//--------------------------------------------------------------------------------------------------
+/**
+ *
+ * This function is used to add a status SMS storage notification handler
+ *
+ * @return A handler reference, which is only needed for later removal of the handler.
+ */
+//--------------------------------------------------------------------------------------------------
+le_event_HandlerRef_t pa_sms_AddStorageStatusHandler
+(
+    pa_sms_StorageMsgHdlrFunc_t statusHandler   ///< [IN] The handler function to handle a status
+                                                ///  notification reception.
+)
+{
+    le_event_HandlerRef_t StorageHandler=NULL;
+    LE_ASSERT(statusHandler != NULL);
+
+    StorageHandler =  le_event_AddHandler(
+                                "PaStorageStatusHandler",
+                                StorageStatusEvent,
+                                (le_event_HandlerFunc_t) statusHandler);
+
+    return (le_event_HandlerRef_t) StorageHandler;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function is called to unregister from a storage message notification handler.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_sms_RemoveStorageStatusHandler
+(
+    le_event_HandlerRef_t storageHandler
+)
+{
+    le_event_RemoveHandler(storageHandler);
+}
+
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -819,6 +861,7 @@ le_result_t sms_simu_Init
     LE_INFO("PA SMS Init");
 
     EventNewSmsId = le_event_CreateId("EventNewSmsId", sizeof(pa_sms_NewMessageIndication_t));
+    StorageStatusEvent = le_event_CreateId("StorageStatusEvent", sizeof(pa_sms_StorageStatusInd_t));
 
     pa_sms_DelAllMsg();
 
