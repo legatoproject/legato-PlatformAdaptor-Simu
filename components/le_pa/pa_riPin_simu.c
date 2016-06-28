@@ -8,9 +8,11 @@
 
 #include "pa_riPin.h"
 
+
+static le_sem_Ref_t SemRef;
 static le_result_t ReturnCode = LE_FAULT;
 static bool AmIOwner = false;
-uint32_t PulseRingSignalDuration = 0;
+uint8_t RingSignalValue = 0;
 
 //--------------------------------------------------------------------------------------------------
 //                                       Public declarations
@@ -60,16 +62,17 @@ void pa_riPinSimu_CheckAmIOwnerOfRingSignal
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Check duration value
+ * Get RI signal value
  *
  */
 //--------------------------------------------------------------------------------------------------
-void pa_riPinSimu_CheckPulseRingSignalDuration
+uint8_t pa_riPinSimu_Get
 (
-    uint32_t duration
+       void
 )
 {
-    LE_ASSERT(PulseRingSignalDuration == duration);
+    le_sem_Wait(SemRef);
+    return RingSignalValue;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -86,6 +89,9 @@ le_result_t pa_riPin_Init
     void
 )
 {
+    // Init semaphore to synchronize pa_riPinSimu_Get() on pa_riPin_Set()
+    SemRef = le_sem_Create("PaSimuRiPinSem", 0);
+
     return LE_OK;
 }
 
@@ -158,16 +164,16 @@ le_result_t pa_riPin_ReleaseRingSignal
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Sets the Ring Indicator signal high for configurable duration of time before lowering it.
- *
+ * Set RI GPIO value
  */
 //--------------------------------------------------------------------------------------------------
-void pa_riPin_PulseRingSignal
+void pa_riPin_Set
 (
-    uint32_t duration ///< [IN] duration in ms
+    uint8_t     set ///< [IN] 1 to Pull up GPIO RI or 0 to lower it down
 )
 {
-    PulseRingSignalDuration = duration;
+    RingSignalValue = set;
+    le_sem_Post(SemRef);
 
     return ;
 }

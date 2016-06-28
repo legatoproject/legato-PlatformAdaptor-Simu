@@ -43,13 +43,13 @@ void pa_riPinSimu_CheckAmIOwnerOfRingSignal
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Check duration value
+ * Get RI signal value
  *
  */
 //--------------------------------------------------------------------------------------------------
-void pa_riPinSimu_CheckPulseRingSignalDuration
+uint8_t pa_riPinSimu_Get
 (
-    uint32_t duration
+       void
 );
 
 #endif // PA_RIPIN_SIMU_H_INCLUDE_GUARD
