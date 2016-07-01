@@ -25,8 +25,6 @@
 static le_event_Id_t          EventNewSmsId;
 static le_event_HandlerRef_t  NewSMSHandlerRef;
 
-static le_event_Id_t          StorageStatusEvent;
-
 static int SmsServerListenFd;
 static le_fdMonitor_Ref_t SmsServerMonitorRef;
 
@@ -68,6 +66,8 @@ static le_result_t SmsServerHandleRemoteMessage
 (
     pa_sms_SimuPdu_t * sourceMsgPtr
 );
+
+pa_sms_StorageMsgHdlrFunc_t StorageMsgHdlr=NULL;
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -163,6 +163,45 @@ le_result_t pa_sms_ClearNewMsgHandler
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Set the type of storage in case of full storage indication
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_sms_SetFullStorageType
+(
+    int storage_type
+)
+{
+    // Init the data for the event report
+    pa_sms_StorageStatusInd_t storageStatus;
+    memset(&storageStatus, 0, sizeof(pa_sms_StorageStatusInd_t));
+
+    switch(storage_type)
+    {
+        case SIMU_SMS_STORAGE_NV:
+        {
+            storageStatus.storage = PA_SMS_STORAGE_NV;
+        }
+        break;
+
+        case SIMU_SMS_STORAGE_SIM:
+        {
+            storageStatus.storage = PA_SMS_STORAGE_SIM;
+        }
+        break;
+
+        default:
+        {
+            storageStatus.storage = PA_SMS_STORAGE_UNKNOWN;
+        }
+    }
+
+    StorageMsgHdlr(&storageStatus);
+}
+
+
+//--------------------------------------------------------------------------------------------------
+/**
  *
  * This function is used to add a status SMS storage notification handler
  *
@@ -175,15 +214,10 @@ le_event_HandlerRef_t pa_sms_AddStorageStatusHandler
                                                 ///  notification reception.
 )
 {
-    le_event_HandlerRef_t StorageHandler=NULL;
-    LE_ASSERT(statusHandler != NULL);
+    // event mechanism is not used because le_event_RunLoop isn't reached
+    StorageMsgHdlr = statusHandler;
 
-    StorageHandler =  le_event_AddHandler(
-                                "PaStorageStatusHandler",
-                                StorageStatusEvent,
-                                (le_event_HandlerFunc_t) statusHandler);
-
-    return (le_event_HandlerRef_t) StorageHandler;
+    return (le_event_HandlerRef_t) StorageMsgHdlr;
 }
 
 
@@ -861,7 +895,6 @@ le_result_t sms_simu_Init
     LE_INFO("PA SMS Init");
 
     EventNewSmsId = le_event_CreateId("EventNewSmsId", sizeof(pa_sms_NewMessageIndication_t));
-    StorageStatusEvent = le_event_CreateId("StorageStatusEvent", sizeof(pa_sms_StorageStatusInd_t));
 
     pa_sms_DelAllMsg();
 

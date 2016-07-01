@@ -17,4 +17,21 @@ typedef struct __attribute__((__packed__)) {
 }
 pa_sms_SimuPdu_t;
 
+// simulate storage type values
+#define SIMU_SMS_STORAGE_SIM    0
+#define SIMU_SMS_STORAGE_NV     1
+#define SIMU_SMS_STORAGE_ERROR  2
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the type of storage in case of full storage indication
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_sms_SetFullStorageType
+(
+    int storage_type
+);
+
+
 #endif
