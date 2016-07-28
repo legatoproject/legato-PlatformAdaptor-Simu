@@ -69,6 +69,8 @@ static le_result_t SmsServerHandleRemoteMessage
 
 pa_sms_StorageMsgHdlrFunc_t StorageMsgHdlr=NULL;
 
+static le_sms_Storage_t PrefSmsStorage;
+
 //--------------------------------------------------------------------------------------------------
 /**
  * Get message data in memory.
@@ -119,6 +121,49 @@ static pa_sms_Storage_t GetCurrentIncomingStorage
 
     return PA_SMS_STORAGE_SIM;
 }
+
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function is called to set the preferred SMS storage area.
+ *
+ * @return LE_FAULT         The function failed.
+ * @return LE_OK            The function succeeded.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sms_SetPreferredStorage
+(
+    le_sms_Storage_t prefStorage  ///< [IN] The preferred SMS storage area
+)
+{
+    if ((prefStorage != LE_SMS_STORAGE_SIM) && (prefStorage != LE_SMS_STORAGE_NV))
+    {
+        return LE_FAULT;
+    }
+
+    PrefSmsStorage = prefStorage;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function is called to get the preferred SMS storage area.
+ *
+ * @return LE_FAULT         The function failed.
+ * @return LE_OK            The function succeeded.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sms_GetPreferredStorage
+(
+    le_sms_Storage_t* prefStoragePtr  ///< [OUT] The preferred SMS storage area
+)
+{
+    *prefStoragePtr = PrefSmsStorage;
+    return LE_OK;
+}
+
+
+
 
 //--------------------------------------------------------------------------------------------------
 /**
