@@ -42,6 +42,8 @@ static char* DtmfPtr = NULL;
 static uint32_t DtmfDuration = 0;
 static uint32_t DtmfPause = 0;
 static int8_t BuildAudioPath[LE_AUDIO_NUM_INTERFACES][LE_AUDIO_NUM_INTERFACES];
+static bool   IsNoiseSuppressorEnabled = false;
+static bool   IsEchoCancellerEnabled = false;
 
 
 //--------------------------------------------------------------------------------------------------
@@ -381,7 +383,16 @@ le_result_t pa_audio_NoiseSuppressorSwitch
     le_onoff_t         switchOnOff  ///< [IN] switch ON or OFF
 )
 {
-    return LE_FAULT;
+    if (switchOnOff == LE_ON)
+    {
+        IsNoiseSuppressorEnabled = true;
+    }
+    else
+    {
+        IsNoiseSuppressorEnabled = false;
+    }
+
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -399,7 +410,15 @@ le_result_t pa_audio_EchoCancellerSwitch
     le_onoff_t         switchOnOff  ///< [IN] switch ON or OFF
 )
 {
-    return LE_FAULT;
+    if (switchOnOff == LE_ON)
+    {
+        IsEchoCancellerEnabled = true;
+    }
+    else
+    {
+        IsEchoCancellerEnabled = false;
+    }
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -790,5 +809,41 @@ le_result_t pa_audio_MuteCallWaitingTone
     bool    mute    ///< [IN] true to mute the Call Waiting tone, false otherwise.
 )
 {
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to get the Noise Suppressor status
+ *
+ * @return LE_FAULT         The function failed to get the interface NS status
+ * @return LE_OK            The function succeeded.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_audio_GetNoiseSuppressorStatus
+(
+    le_audio_Stream_t* streamPtr,                   ///< [IN] input audio stream
+    bool*              noiseSuppressorStatusPtr     ///< [OUT] Noise Suppressor status
+)
+{
+    *noiseSuppressorStatusPtr = IsNoiseSuppressorEnabled;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to get the Echo Canceller status
+ *
+ * @return LE_FAULT         The function failed to get the interface EC status
+ * @return LE_OK            The function succeeded.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_audio_GetEchoCancellerStatus
+(
+    le_audio_Stream_t* streamPtr,                   ///< [IN] input audio stream
+    bool*              echoCancellerStatusPtr       ///< [OUT] Echo Canceller status
+)
+{
+    *echoCancellerStatusPtr = IsEchoCancellerEnabled;
     return LE_OK;
 }
