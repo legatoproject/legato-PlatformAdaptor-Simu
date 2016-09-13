@@ -10,29 +10,6 @@
 
 static le_event_Id_t        GnssEventId;
 
-#ifdef GNSS_STUB_FAKE_POSITION
-
-const pa_Gnss_Position_t StubPosition = {
-        .latitude = +48858300,
-        .longitude = +2294400,
-        .altitude = 0,
-        .hSpeed = 0,
-        .dimension = 0,
-        .hdop = 0,
-        .vdop = 0,
-        .timeInfo = {
-                .hours = 0,
-                .minutes = 0,
-                .seconds = 0,
-                .milliseconds = 0,
-                .year = 2013,
-                .month = 1,
-                .day = 1,
-        },
-};
-
-#endif /* GNSS_STUB_FAKE_POSITION */
-
 //--------------------------------------------------------------------------------------------------
 /**
  * This function must be called to initialize the PA gnss Module.
@@ -211,40 +188,6 @@ void pa_gnss_RemovePositionDataHandler
 )
 {
     le_event_RemoveHandler(handlerRef);
-}
-
-//--------------------------------------------------------------------------------------------------
-/**
- * This function must be called to get the location's data.
- *
- * @return LE_FAULT         The function cannot get internal position information
- * @return LE_OK            The function succeeded.
- */
-//--------------------------------------------------------------------------------------------------
-le_result_t pa_gnss_GetLastPositionData
-(
-    pa_Gnss_Position_t* positionPtr   ///< [OUT] Pointer to a position struct
-)
-{
-
-#ifdef GNSS_STUB_FAKE_POSITION
-
-    if (positionPtr == NULL)
-    {
-        LE_WARN("positionRef is NULL");
-        return LE_FAULT;
-    }
-    else
-    {
-        memcpy(positionPtr, &StubPosition, sizeof(pa_Gnss_Position_t));
-        return LE_OK;
-    }
-
-#else /* GNSS_STUB_FAKE_POSITION */
-
-    return LE_FAULT;
-
-#endif /* GNSS_STUB_FAKE_POSITION */
 }
 
 //--------------------------------------------------------------------------------------------------
