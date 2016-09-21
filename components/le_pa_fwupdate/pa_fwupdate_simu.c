@@ -133,7 +133,7 @@ le_result_t pa_fwupdate_Download
 {
     if (fd < 0)
     {
-        LE_ERROR ("pa_fwupdate_Download bad parameter");
+        LE_ERROR ("bad parameter");
         return LE_BAD_PARAMETER;
     }
 
