@@ -26,6 +26,94 @@ static uint32_t DataLen=0;
 static uint32_t DataIndex=0;
 static intptr_t PcmHandle = 0xBADCAFE;
 static le_sem_Ref_t*    RecSemaphorePtr = NULL;
+static le_thread_Ref_t PcmThreadRef = NULL;
+static GetSetFramesFunc_t GetSetFramesFunc = NULL;
+static ResultFunc_t ResultFunc = NULL;
+static void* HandlerContextPtr = NULL;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Playback thread
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+static void* PlaybackThread
+(
+    void* contextPtr
+)
+{
+    le_result_t res = LE_OK;
+
+    LE_DEBUG("Playback started");
+    uint32_t len = 10;
+    uint32_t index = 0;
+
+    while ( len != 0 )
+    {
+        len = 10;
+        LE_ASSERT( GetSetFramesFunc(DataPtr+index, &len, HandlerContextPtr) == LE_OK );
+        index += len;
+
+    }
+
+    LE_ASSERT(GetSetFramesFunc != NULL);
+    ResultFunc(res, HandlerContextPtr);
+
+    le_event_RunLoop();
+
+    return NULL;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Capture thread
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+static void* CaptureThread
+(
+    void* contextPtr
+)
+{
+    le_result_t res = LE_OK;
+    uint32_t len = 10;
+
+    while (1)
+    {
+        if (DataPtr && DataLen)
+        {
+            LE_ASSERT( GetSetFramesFunc(DataPtr+DataIndex, &len, HandlerContextPtr) == LE_OK );
+            LE_ASSERT(len == 10);
+            DataIndex += 10;
+
+            if ( DataIndex == DataLen )
+            {
+                DataIndex = 0;
+
+                if (RecSemaphorePtr != NULL)
+                {
+                    le_sem_Post(*RecSemaphorePtr);
+                    RecSemaphorePtr = NULL;
+                }
+
+                break;
+            }
+        }
+        else
+        {
+            res = LE_FAULT;
+            break;
+        }
+    }
+
+    LE_ASSERT(GetSetFramesFunc != NULL);
+    ResultFunc(res, HandlerContextPtr);
+
+    le_event_RunLoop();
+
+    return NULL;
+}
+
 
 //--------------------------------------------------------------------------------------------------
 //                                       Public declarations
@@ -93,80 +181,56 @@ uint8_t* pa_pcmSimu_GetDataPtr
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Write PCM frames to sound driver.
+ * Start the playback.
+ * The function is asynchronous: it starts the playback thread, then returns.
  *
  */
 //--------------------------------------------------------------------------------------------------
-le_result_t pa_pcm_Write
+le_result_t pa_pcm_Play
 (
-    pcm_Handle_t pcmHandle,                 ///< [IN] Handle of the audio resource given by
+    pcm_Handle_t pcmHandle                  ///< [IN] Handle of the audio resource given by
                                             ///< pa_pcm_InitPlayback() / pa_pcm_InitCapture()
                                             ///< initialization functions
-    char* data,                             ///< [OUT] Write buffer
-    uint32_t bufsize                        ///< [IN] Buffer length
 )
 {
     LE_ASSERT(pcmHandle == (pcm_Handle_t) PcmHandle);
 
-    if (DataPtr && DataLen && ((DataIndex + bufsize) <= DataLen))
-    {
-        memcpy(DataPtr + DataIndex, data, bufsize );
-        DataIndex += bufsize;
-        return LE_OK;
-    }
-    else
-    {
-        return LE_FAULT;
-    }
+    char threadName[]="PlaybackThread";
+
+    PcmThreadRef = le_thread_Create( threadName,
+                                     PlaybackThread,
+                                     NULL );
+
+    le_thread_Start(PcmThreadRef);
+
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Read PCM frames from sound driver.
+ * Start the recording.
+ * The function is asynchronous: it starts the recording thread, then returns.
  *
  */
 //--------------------------------------------------------------------------------------------------
-le_result_t pa_pcm_Read
+le_result_t pa_pcm_Capture
 (
-    pcm_Handle_t pcmHandle,                 ///< [IN] Handle of the audio resource given by
+    pcm_Handle_t pcmHandle                 ///< [IN] Handle of the audio resource given by
                                             ///< pa_pcm_InitPlayback() / pa_pcm_InitCapture()
                                             ///< initialization functions
-    char* data,                             ///< [IN] Read buffer
-    uint32_t bufsize                        ///< [IN] Buffer length
 )
 {
     LE_ASSERT(pcmHandle == (pcm_Handle_t) PcmHandle);
 
-    if (DataPtr && DataLen && data && bufsize)
-    {
-        uint32_t len = (DataLen - DataIndex) >= bufsize ? bufsize : DataLen - DataIndex;
+    char threadName[]="CaptureThread";
 
-        memcpy(data, DataPtr+DataIndex, len);
-        DataIndex += len;
+    PcmThreadRef = le_thread_Create( threadName,
+                                     CaptureThread,
+                                     NULL );
 
-        if (len < bufsize)
-        {
-            memcpy(data, DataPtr, bufsize-len);
-            DataIndex = bufsize-len;
-        }
+    le_thread_Start(PcmThreadRef);
 
-        if ( DataIndex == DataLen )
-        {
-            DataIndex = 0;
-
-            if (RecSemaphorePtr != NULL)
-            {
-                le_sem_Post(*RecSemaphorePtr);
-                RecSemaphorePtr = NULL;
-            }
-        }
-
-        return LE_OK;
-    }
-    else
-    {
-        return LE_FAULT;
-    }
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -249,4 +313,30 @@ void pa_pcmSimu_Init
 )
 {
     return;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the callbacks called during a playback/recording to:
+ * - get/set PCM frames thanks to getFramesFunc callback: this callback will be called by the pa_pcm
+ * to get the next PCM frames to play (playback case), or to send back PCM frames to record
+ * (recording case).
+ * - get the playback/recording result thanks to setResultFunc callback: this callback will be
+ * called by the PA_PCM to inform the caller about the status of the playback or the recording.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_pcm_SetCallbackHandlers
+(
+    pcm_Handle_t pcmHandle,
+    GetSetFramesFunc_t getSetFramesFunc,
+    ResultFunc_t setResultFunc,
+    void* contextPtr
+)
+{
+    GetSetFramesFunc = getSetFramesFunc;
+    ResultFunc = setResultFunc;
+    HandlerContextPtr = contextPtr;
+
+    return LE_OK;
 }
