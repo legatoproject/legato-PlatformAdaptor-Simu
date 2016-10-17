@@ -922,3 +922,22 @@ le_result_t pa_mdcSimu_Init
     return LE_OK;
 }
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * Map a profile on a network interface
+ *
+ * * @return
+ *      - LE_OK on success
+ *      - LE_UNSUPPORTED if not supported by the target
+ *      - LE_FAULT for all other errors
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mdc_MapProfileOnNetworkInterface
+(
+    uint32_t         profileIndex,         ///< [IN] The profile to use
+    const char*      interfaceNamePtr      ///< [IN] Network interface name
+)
+{
+    return LE_OK;
+}
