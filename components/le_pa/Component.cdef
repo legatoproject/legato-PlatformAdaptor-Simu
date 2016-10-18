@@ -16,6 +16,7 @@ sources:
     ${LEGATO_ROOT}/components/modemServices/modemDaemon/smsPdu.c
     ${LEGATO_ROOT}/components/modemServices/modemDaemon/cdmaPdu.c
     pa_riPin_simu.c
+    pa_rsim_simu.c
 }
 
 cflags:
