@@ -31,6 +31,13 @@ static bool IsResetRequested = false;
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Static variable for simulating a NVUP apply request
+ */
+//--------------------------------------------------------------------------------------------------
+static bool IsNvupApplyRequested = false;
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Static variable for simulating Sw update state
  */
 //--------------------------------------------------------------------------------------------------
@@ -77,6 +84,19 @@ void pa_fwupdateSimu_SetResetState
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Set the stub nvup apply request to false
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_fwupdateSimu_SetNvupApplyState
+(
+    void
+)
+{
+    IsNvupApplyRequested = false;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Simulate function to check if a reset was requested
  */
 //--------------------------------------------------------------------------------------------------
@@ -86,6 +106,19 @@ void pa_fwupdateSimu_GetResetState
 )
 {
     *isReset = IsResetRequested;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Simulate function to check if a nvup apply was requested
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_fwupdateSimu_GetNvupApplyState
+(
+    bool* isNvupApply   ///< [OUT] indicate if a nvup apply was requested
+)
+{
+    *isNvupApply = IsNvupApplyRequested;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -196,7 +229,7 @@ le_result_t pa_fwupdate_GetBootloaderVersion
     size_t versionSize       ///< [IN] Size of version buffer
 )
 {
-        if (ReturnCode == LE_OK )
+    if (ReturnCode == LE_OK )
     {
         /* Simulate a correct API behavior */
         if (versionSize > strlen (FW_VERSION_UT))
@@ -341,6 +374,25 @@ le_result_t pa_fwupdate_DualSysCheckSync
     {
         *isSyncReq = IsSyncLocal;
     }
+    return ReturnCode;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * request the modem to apply the NVUP files in UD system
+ *
+ * @return
+ *      - LE_OK             on success
+ *      - LE_UNSUPPORTED    the feature is not supported
+ *      - LE_FAULT          on failure
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_fwupdate_NvupApply
+(
+    void
+)
+{
+    IsNvupApplyRequested = true;
     return ReturnCode;
 }
 

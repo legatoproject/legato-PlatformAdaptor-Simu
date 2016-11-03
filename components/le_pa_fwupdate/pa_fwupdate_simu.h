@@ -46,6 +46,16 @@ void pa_fwupdateSimu_SetResetState
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Set the stub nvup apply request to false
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_fwupdateSimu_SetNvupApplyState
+(
+    void
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Set the stub synchronization state
  *
  */
@@ -63,6 +73,16 @@ void pa_fwupdateSimu_SetSyncState
 void pa_fwupdateSimu_GetResetState
 (
     bool* isReset   ///< [OUT] indicate if a reset was requested
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Simulate function to check if a nvup apply was requested
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_fwupdateSimu_GetNvupApplyState
+(
+    bool* isNvupApply   ///< [OUT] indicate if a nvup apply was requested
 );
 
 //--------------------------------------------------------------------------------------------------
