@@ -18,8 +18,8 @@
 //--------------------------------------------------------------------------------------------------
 void pa_mdcSimu_SetProfile
 (
-    uint32_t profileIndex,                  ///< [IN] The profile to read
-    pa_mdc_ProfileData_t* profileDataPtr    ///< [OUT] The profile data
+    uint32_t profileIndex,                        ///< [IN] The profile to read
+    const pa_mdc_ProfileData_t* profileDataPtr    ///< [OUT] The profile data
 );
 
 //--------------------------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ void pa_mdcSimu_SetProfile
 void pa_mdcSimu_SetInterfaceName
 (
     uint32_t profileIndex,
-    char*  interfaceNameStr
+    const char* interfaceNameStr
 );
 
 //--------------------------------------------------------------------------------------------------
@@ -44,8 +44,8 @@ void pa_mdcSimu_SetDNSAddresses
 (
     uint32_t profileIndex,
     le_mdmDefs_IpVersion_t ipVersion,
-    char*  dns1AddrStr,
-    char*  dns2AddrStr
+    const char* dns1AddrStr,
+    const char* dns2AddrStr
 );
 
 //--------------------------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ void pa_mdcSimu_SetGatewayAddress
 (
     uint32_t profileIndex,                 ///< [IN] The profile to use
     le_mdmDefs_IpVersion_t ipVersion,      ///< [IN] IP Version
-    char*  gatewayAddrStr                  ///< [IN] The gateway IP address in dotted format
+    const char* gatewayAddrStr                  ///< [IN] The gateway IP address in dotted format
 );
 
 //--------------------------------------------------------------------------------------------------
@@ -71,7 +71,7 @@ void pa_mdcSimu_SetIPAddress
 (
     uint32_t profileIndex,
     le_mdmDefs_IpVersion_t ipVersion,
-    char*  ipAddrStr
+    const char* ipAddrStr
 );
 
 //--------------------------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ void pa_mdcSimu_SetIPAddress
 void pa_mdcSimu_SetInterfaceName
 (
     uint32_t profileIndex,
-    char*  interfaceNameStr
+    const char* interfaceNameStr
 );
 
 
@@ -107,7 +107,7 @@ void pa_mdcSimu_DeleteProfiles
 //--------------------------------------------------------------------------------------------------
 void pa_mdcSimu_SetDataFlowStatistics
 (
-    pa_mdc_PktStatistics_t *dataStatisticsPtr ///< [OUT] Statistics data
+    const pa_mdc_PktStatistics_t *dataStatisticsPtr ///< [OUT] Statistics data
 );
 
 //--------------------------------------------------------------------------------------------------

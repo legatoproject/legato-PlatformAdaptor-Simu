@@ -39,11 +39,10 @@ static bool SimAccessTest = false;
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetPuk
 (
-    char* puk
+    const char* puk
 )
 {
-    strncpy(Puk, puk, PA_SIM_PUK_MAX_LEN);
-    Puk[PA_SIM_PUK_MAX_LEN]='\0';
+    le_utf8_Copy(Puk, puk, NUM_ARRAY_MEMBERS(Puk), NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -54,11 +53,10 @@ void pa_simSimu_SetPuk
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetPin
 (
-    char* pin
+    const char* pin
 )
 {
-    strncpy(Pin, pin, LE_SIM_PIN_MIN_LEN);
-    Pin[LE_SIM_PIN_MIN_LEN]='\0';
+    le_utf8_Copy(Pin, pin, NUM_ARRAY_MEMBERS(Pin), NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -164,7 +162,7 @@ void pa_simSimu_SetCardIdentification
     pa_sim_CardId_t iccid
 )
 {
-    memcpy(Iccid, iccid, sizeof(pa_sim_CardId_t));
+    le_utf8_Copy(Iccid, iccid, sizeof(pa_sim_CardId_t), NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -194,7 +192,7 @@ le_result_t pa_sim_GetCardIdentification
             return LE_NOT_POSSIBLE;
     }
 
-    memcpy(iccid, Iccid, sizeof(pa_sim_CardId_t));
+    le_utf8_Copy(iccid, Iccid, sizeof(pa_sim_CardId_t), NULL);
 
     return LE_OK;
 }
@@ -210,7 +208,7 @@ void pa_simSimu_SetIMSI
     pa_sim_Imsi_t imsi   ///< [IN] IMSI value
 )
 {
-    strncpy(Imsi, imsi, sizeof(pa_sim_Imsi_t));
+    le_utf8_Copy(Imsi, imsi, sizeof(pa_sim_Imsi_t), NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -238,7 +236,7 @@ le_result_t pa_sim_GetIMSI
             return LE_NOT_POSSIBLE;
     }
 
-    strncpy(imsi, Imsi, sizeof(pa_sim_Imsi_t));
+    le_utf8_Copy(imsi, Imsi, sizeof(pa_sim_Imsi_t), NULL);
 
     return LE_OK;
 }
@@ -586,10 +584,10 @@ le_result_t pa_sim_DisablePIN
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetSubscriberPhoneNumber
 (
-    char        *phoneNumberStr
+    const char *phoneNumberStr
 )
 {
-    strncpy(PhoneNumber, phoneNumberStr, LE_MDMDEFS_PHONE_NUM_MAX_BYTES);
+    le_utf8_Copy(PhoneNumber, phoneNumberStr, LE_MDMDEFS_PHONE_NUM_MAX_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -621,7 +619,7 @@ le_result_t pa_sim_GetSubscriberPhoneNumber
         return LE_OVERFLOW;
     }
 
-    strncpy(phoneNumberStr, PhoneNumber, phoneNumberStrSize);
+    le_utf8_Copy(phoneNumberStr, PhoneNumber, phoneNumberStrSize, NULL);
 
     return LE_OK;
 }
@@ -633,12 +631,12 @@ le_result_t pa_sim_GetSubscriberPhoneNumber
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetHomeNetworkOperator
 (
-    char       *nameStr
+    const char *nameStr
 )
 {
     int len = strlen(nameStr)+1;
-    HomeNetworkOperator = malloc( len );
-    strcpy(HomeNetworkOperator, nameStr);
+    HomeNetworkOperator = malloc(len);
+    le_utf8_Copy(HomeNetworkOperator, nameStr, len, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -673,7 +671,7 @@ le_result_t pa_sim_GetHomeNetworkOperator
         return LE_OVERFLOW;
     }
 
-    strncpy(nameStr, HomeNetworkOperator, nameStrSize );
+    le_utf8_Copy(nameStr, HomeNetworkOperator, nameStrSize, NULL);
 
     return LE_OK;
 }
@@ -686,14 +684,14 @@ le_result_t pa_sim_GetHomeNetworkOperator
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetHomeNetworkMccMnc
 (
-    char     *mccPtr,
-    char     *mncPtr
+    const char *mccPtr,
+    const char *mncPtr
 )
 {
     LE_ASSERT((strlen(mccPtr) <= LE_MRC_MCC_BYTES) && (strlen(mncPtr) <= LE_MRC_MNC_BYTES));
 
-    strcpy(HomeMcc, mccPtr);
-    strcpy(HomeMnc, mncPtr);
+    le_utf8_Copy(HomeMcc, mccPtr, LE_MRC_MCC_BYTES, NULL);
+    le_utf8_Copy(HomeMnc, mncPtr, LE_MRC_MNC_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -714,6 +712,8 @@ le_result_t pa_sim_GetHomeNetworkMccMnc
     size_t    mncPtrSize             ///< [IN] mncPtr buffer size
 )
 {
+    le_result_t res;
+
     switch (SimState)
     {
         case LE_SIM_READY:
@@ -722,14 +722,17 @@ le_result_t pa_sim_GetHomeNetworkMccMnc
             return LE_FAULT;
     }
 
-
-    if ( ( mccPtrSize <  strlen(HomeMcc) ) || ( mncPtrSize <  strlen(HomeMnc) ) )
+    res = le_utf8_Copy(mccPtr, HomeMcc, mccPtrSize, NULL);
+    if(res != LE_OK)
     {
-        return LE_OVERFLOW;
+        return res;
     }
 
-    strncpy(mccPtr, HomeMcc, mccPtrSize );
-    strncpy(mncPtr, HomeMnc, mncPtrSize );
+    res = le_utf8_Copy(mncPtr, HomeMnc, mncPtrSize, NULL);
+    if(res != LE_OK)
+    {
+        return res;
+    }
 
     return LE_OK;
 }

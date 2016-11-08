@@ -21,14 +21,14 @@ typedef struct
     /* session */
     bool sessionStarted[LE_MDC_PDP_IPV4V6];
     /* gateway */
-    char  gatewayAddrStr[LE_MDMDEFS_IPMAX][40];
+    char  gatewayAddrStr[LE_MDMDEFS_IPMAX][LE_MDC_IPV6_ADDR_MAX_BYTES];
     /* ip addr */
-    char  ipAddrStr[LE_MDMDEFS_IPMAX][40];
+    char  ipAddrStr[LE_MDMDEFS_IPMAX][LE_MDC_IPV6_ADDR_MAX_BYTES];
     /* interface name */
-    char interfaceName[20];
+    char interfaceName[LE_MDC_INTERFACE_NAME_MAX_BYTES];
     /* dns */
-    char dns1AddrStr[LE_MDMDEFS_IPMAX][40];
-    char dns2AddrStr[LE_MDMDEFS_IPMAX][40];
+    char dns1AddrStr[LE_MDMDEFS_IPMAX][LE_MDC_IPV6_ADDR_MAX_BYTES];
+    char dns2AddrStr[LE_MDMDEFS_IPMAX][LE_MDC_IPV6_ADDR_MAX_BYTES];
 } MdcSimuProfile_t;
 
 static MdcSimuProfile_t* MdcSimuProfile;
@@ -129,7 +129,7 @@ void pa_mdcSimu_SetGatewayAddress
 (
     uint32_t profileIndex,                 ///< [IN] The profile to use
     le_mdmDefs_IpVersion_t ipVersion,      ///< [IN] IP Version
-    char*  gatewayAddrStr                  ///< [IN] The gateway IP address in dotted format
+    const char* gatewayAddrStr             ///< [IN] The gateway IP address in dotted format
 )
 {
     MdcSimuProfile_t *profilePtr = GetProfile(profileIndex);
@@ -139,7 +139,7 @@ void pa_mdcSimu_SetGatewayAddress
         return;
     }
 
-    strcpy(profilePtr->gatewayAddrStr[ipVersion], gatewayAddrStr);
+    le_utf8_Copy(profilePtr->gatewayAddrStr[ipVersion], gatewayAddrStr, LE_MDC_IPV6_ADDR_MAX_BYTES, NULL);
 }
 
 
@@ -234,12 +234,12 @@ le_result_t pa_mdc_GetSessionType
 void pa_mdcSimu_SetInterfaceName
 (
     uint32_t profileIndex,
-    char*  interfaceNameStr
+    const char* interfaceNameStr
 )
 {
     MdcSimuProfile_t *profilePtr = GetProfile(profileIndex);
 
-    strcpy( profilePtr->interfaceName, interfaceNameStr );
+    le_utf8_Copy(profilePtr->interfaceName, interfaceNameStr, LE_MDC_INTERFACE_NAME_MAX_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -402,12 +402,13 @@ le_result_t pa_mdc_GetBipDefaultProfileIndex
 //--------------------------------------------------------------------------------------------------
 void pa_mdcSimu_SetProfile
 (
-    uint32_t profileIndex,                  ///< [IN] The profile to read
-    pa_mdc_ProfileData_t* profileDataPtr    ///< [OUT] The profile data
+    uint32_t profileIndex,                        ///< [IN] The profile to read
+    const pa_mdc_ProfileData_t* profileDataPtr    ///< [OUT] The profile data
 )
 {
     MdcSimuProfile_t *profileTmpPtr = MdcSimuProfile, *profilePrevPtr = NULL;
 
+    /* Looking for profileIndex in the MdcSimuProfile chain */
     while ( profileTmpPtr && (profileTmpPtr->profileIndex != profileIndex) )
     {
         profilePrevPtr = profileTmpPtr;
@@ -416,16 +417,13 @@ void pa_mdcSimu_SetProfile
 
     if (!profileTmpPtr)
     {
+        /* profileIndex has not been found, allocating new profile */
         MdcSimuProfile_t *profilePtr = malloc(sizeof(MdcSimuProfile_t));
         memset(profilePtr,0,sizeof(MdcSimuProfile_t));
         profilePtr->profileIndex = profileIndex;
         profilePtr->profileData = *profileDataPtr;
 
-        if ( profileTmpPtr )
-        {
-            profileTmpPtr->nextPtr = (struct MdcSimuProfile_t *) profilePtr;
-        }
-        else if ( profilePrevPtr )
+        if (profilePrevPtr)
         {
             profilePrevPtr->nextPtr = (struct MdcSimuProfile_t *) profilePtr;
         }
@@ -436,6 +434,7 @@ void pa_mdcSimu_SetProfile
     }
     else
     {
+        /* profileIndex has been found, setting data */
         profileTmpPtr->profileData = *profileDataPtr;
     }
 }
@@ -527,7 +526,7 @@ void pa_mdcSimu_SetIPAddress
 (
     uint32_t profileIndex,
     le_mdmDefs_IpVersion_t ipVersion,
-    char*  ipAddrStr
+    const char* ipAddrStr
 )
 {
     MdcSimuProfile_t *profilePtr = GetProfile(profileIndex);
@@ -537,8 +536,7 @@ void pa_mdcSimu_SetIPAddress
         return;
     }
 
-    strcpy(profilePtr->ipAddrStr[ipVersion], ipAddrStr);
-
+    le_utf8_Copy(profilePtr->ipAddrStr[ipVersion], ipAddrStr, LE_MDC_IPV6_ADDR_MAX_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -573,7 +571,7 @@ le_result_t pa_mdc_GetIPAddress
 
     if (ipAddrStrSize >= strlen(profilePtr->ipAddrStr[ipVersion]) )
     {
-        strcpy(ipAddrStr, profilePtr->ipAddrStr[ipVersion]);
+        le_utf8_Copy(ipAddrStr, profilePtr->ipAddrStr[ipVersion], ipAddrStrSize, NULL);
 
         return LE_OK;
     }
@@ -698,7 +696,7 @@ le_result_t pa_mdc_StartSessionIPV4V6
 //--------------------------------------------------------------------------------------------------
 void pa_mdcSimu_SetDataFlowStatistics
 (
-    pa_mdc_PktStatistics_t *dataStatisticsPtr ///< [OUT] Statistics data
+    const pa_mdc_PktStatistics_t *dataStatisticsPtr ///< [OUT] Statistics data
 )
 {
     DataStatistics = *dataStatisticsPtr;
@@ -830,14 +828,14 @@ void pa_mdcSimu_SetDNSAddresses
 (
     uint32_t profileIndex,
     le_mdmDefs_IpVersion_t ipVersion,
-    char*  dns1AddrStr,
-    char*  dns2AddrStr
+    const char* dns1AddrStr,
+    const char* dns2AddrStr
 )
 {
     MdcSimuProfile_t *profilePtr = GetProfile(profileIndex);
 
-    strcpy(profilePtr->dns1AddrStr[ipVersion], dns1AddrStr);
-    strcpy(profilePtr->dns2AddrStr[ipVersion], dns2AddrStr);
+    le_utf8_Copy(profilePtr->dns1AddrStr[ipVersion], dns1AddrStr, LE_MDC_IPV6_ADDR_MAX_BYTES, NULL);
+    le_utf8_Copy(profilePtr->dns2AddrStr[ipVersion], dns2AddrStr, LE_MDC_IPV6_ADDR_MAX_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -871,16 +869,6 @@ le_result_t pa_mdc_GetDNSAddresses
         return LE_FAULT;
     }
 
-    if ( profilePtr->sessionStarted[LE_MDMDEFS_IPVERSION_2_LE_MDC_PDP(ipVersion)] &&
-        ( dns1AddrStrSize >= strlen(profilePtr->dns1AddrStr[ipVersion]) ) &&
-        ( dns2AddrStrSize >= strlen(profilePtr->dns2AddrStr[ipVersion]) ))
-    {
-        strcpy( dns1AddrStr, profilePtr->dns1AddrStr[ipVersion] );
-        strcpy( dns2AddrStr, profilePtr->dns2AddrStr[ipVersion] );
-
-        return LE_OK;
-    }
-
     if (ipVersion == LE_MDMDEFS_IPV4)
     {
         if ( dns1AddrStrSize < INET_ADDRSTRLEN)
@@ -895,14 +883,24 @@ le_result_t pa_mdc_GetDNSAddresses
 
     if (ipVersion == LE_MDMDEFS_IPV6)
     {
-        if ( dns1AddrStrSize < INET6_ADDRSTRLEN)
+        if ( dns1AddrStrSize < LE_MDC_IPV6_ADDR_MAX_BYTES)
         {
                 return LE_OVERFLOW;
         }
-        if ( dns2AddrStrSize < INET6_ADDRSTRLEN)
+        if ( dns2AddrStrSize < LE_MDC_IPV6_ADDR_MAX_BYTES)
         {
                return LE_OVERFLOW;
         }
+    }
+
+    if ( profilePtr->sessionStarted[LE_MDMDEFS_IPVERSION_2_LE_MDC_PDP(ipVersion)] &&
+        ( dns1AddrStrSize >= strlen(profilePtr->dns1AddrStr[ipVersion]) ) &&
+        ( dns2AddrStrSize >= strlen(profilePtr->dns2AddrStr[ipVersion]) ))
+    {
+        le_utf8_Copy(dns1AddrStr, profilePtr->dns1AddrStr[ipVersion], dns1AddrStrSize, NULL);
+        le_utf8_Copy(dns2AddrStr, profilePtr->dns2AddrStr[ipVersion], dns2AddrStrSize, NULL);
+
+        return LE_OK;
     }
 
     return LE_FAULT;

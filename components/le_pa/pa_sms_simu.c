@@ -251,32 +251,41 @@ void pa_sms_SetSmsInStorage
     int i;
     int storageIdx = msgPtr->storage;
     int index = msgPtr->msgIndex;
+    SmsMsgInMemory* storageMsgPtr = NULL;
 
     if (storageIdx == PA_SMS_STORAGE_NV)
     {
         NumberSmsInStorageNv++;
-        LE_DEBUG("NumberSmsInStorageNv %d ",NumberSmsInStorageNv);
+        LE_DEBUG("NumberSmsInStorageNv %d ", NumberSmsInStorageNv);
+        storageMsgPtr = &SmsMem[storageIdx-1][index];
     }
     else if (storageIdx == PA_SMS_STORAGE_SIM)
     {
         NumberSmsInStorageSim++;
-        LE_DEBUG("NumberSmsInStorageSim %d ",NumberSmsInStorageSim);
-
+        LE_DEBUG("NumberSmsInStorageSim %d ", NumberSmsInStorageSim);
+        storageMsgPtr = &SmsMem[storageIdx-1][index];
     }
     else if (storageIdx == PA_SMS_STORAGE_NONE)
     {
         NumberSmsInStorageNone++;
-        LE_DEBUG("NumberSmsInStorageNone %d ",NumberSmsInStorageNone);
+        LE_DEBUG("NumberSmsInStorageNone %d ", NumberSmsInStorageNone);
+    }
+    else
+    {
+        LE_FATAL("Unknown storage index %d", msgPtr->storage);
     }
 
-    --storageIdx;
-    SmsMem[storageIdx][index].pduContent.status = LE_SMS_RX_UNREAD;
-    SmsMem[storageIdx][index].pduContent.protocol = msgPtr->protocol;
-    SmsMem[storageIdx][index].pduContent.dataLen = msgPtr->pduLen;
-    for (i=0; i< msgPtr->pduLen; i++)
+    if(storageMsgPtr)
     {
-        SmsMem[storageIdx][index].pduContent.data[i] = msgPtr->pduCB[i];
+        storageMsgPtr->pduContent.status = LE_SMS_RX_UNREAD;
+        storageMsgPtr->pduContent.protocol = msgPtr->protocol;
+        storageMsgPtr->pduContent.dataLen = msgPtr->pduLen;
+        for (i=0; i< msgPtr->pduLen; i++)
+        {
+            storageMsgPtr->pduContent.data[i] = msgPtr->pduCB[i];
+        }
     }
+
     NewSMSHandler(msgPtr);
 }
 
@@ -697,6 +706,8 @@ static le_result_t SmsServerHandleRemoteMessage
     {
         messageMemPtr = GetSmsMsg(storage, idx);
 
+        LE_ASSERT(messageMemPtr != NULL);
+
         if(messageMemPtr->pduContent.status == LE_SMS_STATUS_UNKNOWN)
         {
             messageMemPtr->pduContent.status = LE_SMS_RX_UNREAD;
@@ -972,6 +983,7 @@ static void SmsServerConn
     if(fdIndex == PA_SMS_SIMU_MAX_CONN)
     {
         LE_WARN("Nb of allowed connections reached (%d)", PA_SMS_SIMU_MAX_CONN);
+        return;
     }
 
     snprintf(monitorFdName, sizeof(monitorFdName), "SmsSimuConn[%u]", fdIndex);
@@ -1186,7 +1198,7 @@ le_result_t pa_sms_RemoveCellBroadcastIds
     int i,j;
 
     for(i=0; (i < CellBroadcastConfig.nbCell3GPPConfig)
-        && (i < PA_SMS_SIMU_3GPP_BROADCAST_CONFIG_MAX); i++)
+          && (i < PA_SMS_SIMU_3GPP_BROADCAST_CONFIG_MAX); i++)
     {
         if ( (CellBroadcastConfig.Cell3GPPBroadcast[i].fromId == fromId)
               && (CellBroadcastConfig.Cell3GPPBroadcast[i].toId == toId))
@@ -1197,7 +1209,7 @@ le_result_t pa_sms_RemoveCellBroadcastIds
             if(i < (CellBroadcastConfig.nbCell3GPPConfig - 1))
             {
                 for(j = i+1 ; (j < (CellBroadcastConfig.nbCell3GPPConfig -1))
-                    && (j < PA_SMS_SIMU_3GPP_BROADCAST_CONFIG_MAX); j++ )
+                           && (j < PA_SMS_SIMU_3GPP_BROADCAST_CONFIG_MAX); j++ )
                 {
                     CellBroadcastConfig.Cell3GPPBroadcast[j-1].fromId =
                                     CellBroadcastConfig.Cell3GPPBroadcast[j].fromId;
@@ -1207,8 +1219,8 @@ le_result_t pa_sms_RemoveCellBroadcastIds
                                     CellBroadcastConfig.Cell3GPPBroadcast[j].selected;
                 }
             }
-            memset(&CellBroadcastConfig.Cell3GPPBroadcast[CellBroadcastConfig.nbCell3GPPConfig], 0,
-                sizeof(pa_3gpp_broadcast_config_info_type));
+            memset(&CellBroadcastConfig.Cell3GPPBroadcast[CellBroadcastConfig.nbCell3GPPConfig-1], 0,
+                sizeof(BoardcastConfigInfo3gpp_t));
             CellBroadcastConfig.nbCell3GPPConfig--;
 
             return LE_OK;
@@ -1317,7 +1329,7 @@ le_result_t pa_sms_RemoveCdmaCellBroadcastServices
     int i,j;
 
     for(i=0; (i < CellBroadcastConfig.nbCell3GPP2Config)
-        && (i <  PA_SMS_SIMU_3GPP2_BROADCAST_CONFIG_MAX); i++)
+          && (i < PA_SMS_SIMU_3GPP2_BROADCAST_CONFIG_MAX); i++)
     {
         if ( (CellBroadcastConfig.Cell3GPP2Broadcast[i].serviceCategory == serviceCat)
           && (CellBroadcastConfig.Cell3GPP2Broadcast[i].language == language) )
@@ -1328,7 +1340,7 @@ le_result_t pa_sms_RemoveCdmaCellBroadcastServices
             if(i < (CellBroadcastConfig.nbCell3GPP2Config - 1))
             {
                 for(j = i+1 ; (j < CellBroadcastConfig.nbCell3GPP2Config)
-                && (j <  PA_SMS_SIMU_3GPP2_BROADCAST_CONFIG_MAX); j++ )
+                           && (j < PA_SMS_SIMU_3GPP2_BROADCAST_CONFIG_MAX); j++ )
                 {
                     CellBroadcastConfig.Cell3GPP2Broadcast[j-1].serviceCategory =
                                     CellBroadcastConfig.Cell3GPP2Broadcast[j].serviceCategory;
@@ -1338,8 +1350,8 @@ le_result_t pa_sms_RemoveCdmaCellBroadcastServices
                                     CellBroadcastConfig.Cell3GPP2Broadcast[j].selected;
                 }
             }
-            memset(&CellBroadcastConfig.Cell3GPP2Broadcast[CellBroadcastConfig.nbCell3GPP2Config],
-                0, sizeof(pa_3gpp2_broadcast_config_info_type));
+            memset(&CellBroadcastConfig.Cell3GPP2Broadcast[CellBroadcastConfig.nbCell3GPP2Config-1],
+                0, sizeof(BoardcastConfigInfo3gpp2_t));
 
             CellBroadcastConfig.nbCell3GPP2Config--;
             return LE_OK;
