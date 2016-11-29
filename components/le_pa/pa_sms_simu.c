@@ -967,15 +967,11 @@ static void SmsServerConn
 
     LE_INFO("Conn listenFd=%d", listenFd);
 
-    connFd = accept(listenFd, &inAddr, &inLen);
-    LE_FATAL_IF( (connFd < 0), "Unable to accept connection" );
-
     /* Look for a free connection */
     for(fdIndex = 0; fdIndex < PA_SMS_SIMU_MAX_CONN; fdIndex++)
     {
         if(SmsServerConnections[fdIndex].used == false)
         {
-            LE_INFO("Accept Connection idx=%d fd=%d", fdIndex, connFd);
             break;
         }
     }
@@ -985,6 +981,11 @@ static void SmsServerConn
         LE_WARN("Nb of allowed connections reached (%d)", PA_SMS_SIMU_MAX_CONN);
         return;
     }
+
+    connFd = accept(listenFd, &inAddr, &inLen);
+    LE_FATAL_IF( (connFd < 0), "Unable to accept connection" );
+
+    LE_INFO("Accept Connection idx=%d fd=%d", fdIndex, connFd);
 
     snprintf(monitorFdName, sizeof(monitorFdName), "SmsSimuConn[%u]", fdIndex);
 
