@@ -16,6 +16,7 @@
 // Symbol and Enum definitions.
 //--------------------------------------------------------------------------------------------------
 
+#define PACKET_SIZE 10
 
 //--------------------------------------------------------------------------------------------------
 //                                       Static declarations
@@ -45,21 +46,46 @@ static void* PlaybackThread
     le_result_t res = LE_OK;
 
     LE_DEBUG("Playback started");
-    uint32_t len = 10;
+    uint32_t len = PACKET_SIZE;
     uint32_t index = 0;
-
-    while ( len != 0 )
-    {
-        len = 10;
-        LE_ASSERT( GetSetFramesFunc(DataPtr+index, &len, HandlerContextPtr) == LE_OK );
-        index += len;
-
-    }
+    bool previousNullLen = false;
 
     LE_ASSERT(GetSetFramesFunc != NULL);
-    ResultFunc(res, HandlerContextPtr);
 
-    le_event_RunLoop();
+    while (1)
+    {
+        if (index >= DataLen)
+        {
+            // just read a char in that case
+            uint8_t data;
+            LE_ASSERT( GetSetFramesFunc(&data, &len, HandlerContextPtr) == LE_OK );
+        }
+        else
+        {
+            len = ((index + PACKET_SIZE) < DataLen) ? PACKET_SIZE : (DataLen-index);
+            LE_ASSERT(len != 0);
+            LE_ASSERT( GetSetFramesFunc(DataPtr+index, &len, HandlerContextPtr) == LE_OK );
+            index += len;
+        }
+
+        if (len == 0)
+        {
+            if (previousNullLen)
+            {
+                res = LE_UNDERFLOW;
+            }
+            else
+            {
+                res = LE_OK;
+                previousNullLen = true;
+            }
+
+            LE_ASSERT(ResultFunc != NULL);
+            ResultFunc(res, HandlerContextPtr);
+        }
+
+        pthread_testcancel();
+    }
 
     return NULL;
 }
@@ -76,15 +102,15 @@ static void* CaptureThread
 )
 {
     le_result_t res = LE_OK;
-    uint32_t len = 10;
+    uint32_t len = PACKET_SIZE;
 
     while (1)
     {
         if (DataPtr && DataLen)
         {
             LE_ASSERT( GetSetFramesFunc(DataPtr+DataIndex, &len, HandlerContextPtr) == LE_OK );
-            LE_ASSERT(len == 10);
-            DataIndex += 10;
+            LE_ASSERT(len == PACKET_SIZE);
+            DataIndex += len;
 
             if ( DataIndex == DataLen )
             {
@@ -194,12 +220,15 @@ le_result_t pa_pcm_Play
 )
 {
     LE_ASSERT(pcmHandle == (pcm_Handle_t) PcmHandle);
+    LE_ASSERT(PcmThreadRef == NULL);
 
     char threadName[]="PlaybackThread";
 
     PcmThreadRef = le_thread_Create( threadName,
                                      PlaybackThread,
                                      NULL );
+
+    le_thread_SetJoinable(PcmThreadRef);
 
     le_thread_Start(PcmThreadRef);
 
@@ -221,12 +250,15 @@ le_result_t pa_pcm_Capture
 )
 {
     LE_ASSERT(pcmHandle == (pcm_Handle_t) PcmHandle);
+    LE_ASSERT(PcmThreadRef == NULL);
 
     char threadName[]="CaptureThread";
 
     PcmThreadRef = le_thread_Create( threadName,
                                      CaptureThread,
                                      NULL );
+
+    le_thread_SetJoinable(PcmThreadRef);
 
     le_thread_Start(PcmThreadRef);
 
@@ -246,7 +278,14 @@ le_result_t pa_pcm_Close
                                            ///< initialization functions
 )
 {
-    return LE_FAULT;
+    if (PcmThreadRef)
+    {
+        le_thread_Cancel(PcmThreadRef);
+        le_thread_Join(PcmThreadRef, NULL);
+        PcmThreadRef = NULL;
+    }
+
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -262,7 +301,7 @@ uint32_t pa_pcm_GetPeriodSize
                                             ///< initialization functions
 )
 {
-    return 10;
+    return 3000;
 }
 
 //--------------------------------------------------------------------------------------------------
