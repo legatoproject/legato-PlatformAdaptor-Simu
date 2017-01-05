@@ -1,39 +1,28 @@
 /**
- * @file pa_adc_simu.c
- *
- * simu implementation of ADC API - stub.
+ * @file pa_adc_simu.h
  *
  * Copyright (C) Sierra Wireless Inc. Use of this work is subject to license.
+ *
  */
 
+#ifndef LEGATO_PA_ADC_SIMU_INCLUDE_GUARD
+#define LEGATO_PA_ADC_SIMU_INCLUDE_GUARD
 
-#include "legato.h"
-#include "interfaces.h"
-#include "pa_adc.h"
-
-
-#define adcValue    120
-
-//--------------------------------------------------------------------------------------------------
-/*
- * Return code
- */
-//--------------------------------------------------------------------------------------------------
-static le_result_t ReturnCode = LE_FAULT;
 
 //--------------------------------------------------------------------------------------------------
 /**
  * Set the return code.
+ *
+ * @return
+ *     - void
  *
  */
 //--------------------------------------------------------------------------------------------------
 void pa_adcSimu_SetReturnCode
 (
     le_result_t res
-)
-{
-    ReturnCode = res;
-}
+);
+
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -53,16 +42,7 @@ LE_SHARED le_result_t pa_adc_ReadValue
     int32_t* adcValuePtr
         ///< [OUT]
         ///< The adc value
-)
-{
-    if (ReturnCode == LE_FAULT)
-    {
-        return LE_FAULT;
-    }
-    *adcValuePtr = adcValue;
-    return LE_OK;
-}
-
+);
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -74,9 +54,6 @@ LE_SHARED le_result_t pa_adc_ReadValue
 le_result_t pa_adc_Init
 (
     void
-)
-{
-    LE_INFO("simulation pa_adc init - stub");
+);
 
-    return LE_OK;
-}
+#endif
