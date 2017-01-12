@@ -8,20 +8,133 @@
 
 #include "legato.h"
 #include "pa_info.h"
-
 #include "interfaces.h"
 #include "pa_simu.h"
+#include "pa_info_simu.h"
 
 #include <sys/utsname.h>
+
+static pa_info_Imei_t Imei = PA_SIMU_INFO_DEFAULT_IMEI;
+static pa_info_ImeiSv_t ImeiSv = PA_SIMU_INFO_DEFAULT_IMEISV;
+static pa_info_DeviceModel_t DeviceModel = PA_SIMU_INFO_DEFAULT_DEVICE_MODEL;
+static char FirmwareVersion[PA_INFO_VERS_MAX_BYTES] = PA_SIMU_INFO_DEFAULT_FW_VERSION;
+static char BootLoaderVersion[PA_INFO_VERS_MAX_BYTES] = PA_SIMU_INFO_DEFAULT_BOOT_VERSION;
+
+static le_result_t SimuRes;
+static bool        ApplySimuErrorCode;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Reset the return error management
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_ResetErrorCase
+(
+    void
+)
+{
+    ApplySimuErrorCode = false;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the return error
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetErrorCase
+(
+    le_result_t  res     ///< [IN] type of return error
+)
+{
+    ApplySimuErrorCode = true;
+    SimuRes = res;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the IMEI
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetImei
+(
+    pa_info_Imei_t imei
+)
+{
+    strncpy(Imei, imei, PA_INFO_IMEI_MAX_LEN);
+    Imei[PA_INFO_IMEI_MAX_LEN]='\0';
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the IMEISV
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetImeiSv
+(
+    pa_info_ImeiSv_t imeiSv
+)
+{
+    strncpy(ImeiSv, imeiSv, PA_INFO_IMEISV_MAX_LEN);
+    ImeiSv[PA_INFO_IMEISV_MAX_LEN]='\0';
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the Firmware version
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetFirmwareVersion
+(
+    char* firmwareVersionPtr
+)
+{
+    strncpy(FirmwareVersion, firmwareVersionPtr, PA_INFO_VERS_MAX_LEN);
+    FirmwareVersion[PA_INFO_VERS_MAX_LEN]='\0';
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the bootloader Version
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetBootloaderVersion
+(
+    char* bootLoaderVersionPtr
+)
+{
+    strncpy(BootLoaderVersion, bootLoaderVersionPtr, PA_INFO_VERS_MAX_LEN);
+    BootLoaderVersion[PA_INFO_VERS_MAX_LEN]='\0';
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the device model
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetDeviceModel
+(
+    pa_info_DeviceModel_t deviceModel
+)
+{
+    strncpy(DeviceModel, deviceModel, PA_INFO_MODEL_MAX_LEN);
+    DeviceModel[PA_INFO_MODEL_MAX_LEN]='\0';
+}
 
 //--------------------------------------------------------------------------------------------------
 /**
  * This function get the International Mobile Equipment Identity (IMEI).
  *
- * @return  LE_NOT_POSSIBLE  The function failed to get the value.
- * @return  LE_COMM_ERROR    The communication device has returned an error.
- * @return  LE_TIMEOUT       No response was received from the Modem.
- * @return  LE_OK            The function succeeded.
+ * @return
+ * - LE_FAULT         The function failed to get the value.
+ * - LE_TIMEOUT       No response was received from the Modem.
+ * - LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_info_GetImei
@@ -29,24 +142,25 @@ le_result_t pa_info_GetImei
     pa_info_Imei_t imei   ///< [OUT] IMEI value
 )
 {
-    le_result_t res;
-    char buffer[513];
+    return (le_utf8_Copy(imei, Imei, sizeof(pa_info_Imei_t), NULL));
+}
 
-    res = le_cfg_QuickGetString(PA_SIMU_CFG_MODEM_ROOT "/info/imei", buffer, sizeof(buffer), PA_SIMU_INFO_DEFAULT_IMEI);
-
-    switch (res)
-    {
-        case LE_OK:
-            res = le_utf8_Copy(imei, buffer, sizeof(pa_info_Imei_t), NULL);
-            LE_WARN_IF(res != LE_OK, "Error when copying string: %d", res);
-            break;
-
-        default:
-            LE_FATAL("Unexpected result: %i", res);
-            break;
-    }
-
-    return LE_OK;
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function get the International Mobile Equipment Identity software version number (IMEISV).
+ *
+ * @return
+ * - LE_FAULT         The function failed to get the value.
+ * - LE_TIMEOUT       No response was received from the Modem.
+ * - LE_OK            The function succeeded.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_info_GetImeiSv
+(
+    pa_info_ImeiSv_t imeiSv   ///< [OUT] IMEISV value
+)
+{
+    return (le_utf8_Copy(imeiSv, ImeiSv, sizeof(pa_info_ImeiSv_t), NULL));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -56,7 +170,8 @@ le_result_t pa_info_GetImei
  * @return
  *      - LE_OK on success
  *      - LE_NOT_FOUND if the version string is not available
- *      - LE_NOT_POSSIBLE for any other errors
+ *      - LE_OVERFLOW if version string to big to fit in provided buffer
+ *      - LE_FAULT for any other errors
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_info_GetFirmwareVersion
@@ -65,24 +180,12 @@ le_result_t pa_info_GetFirmwareVersion
     size_t versionSize       ///< [IN] Size of version buffer
 )
 {
-    le_result_t res;
-    char buffer[PA_INFO_IMEI_MAX_LEN+1];
-
-    res = le_cfg_QuickGetString(PA_SIMU_CFG_MODEM_ROOT "/info/fwVersion", buffer, sizeof(buffer), PA_SIMU_INFO_DEFAULT_FW_VERSION);
-
-    switch (res)
+    // added to simulate the LE_NOT_FOUND error
+    if (true == ApplySimuErrorCode)
     {
-        case LE_OK:
-            res = le_utf8_Copy(versionPtr, buffer, versionSize, NULL);
-            LE_WARN_IF(res != LE_OK, "Error when copying string: %d", res);
-            break;
-
-        default:
-            LE_FATAL("Unexpected result: %i", res);
-            break;
+        return SimuRes;
     }
-
-    return LE_OK;
+    return (le_utf8_Copy(versionPtr, FirmwareVersion,versionSize, NULL));
 }
 
 
@@ -93,7 +196,8 @@ le_result_t pa_info_GetFirmwareVersion
  * @return
  *      - LE_OK on success
  *      - LE_NOT_FOUND if the version string is not available
- *      - LE_NOT_POSSIBLE for any other errors
+ *      - LE_OVERFLOW if version string to big to fit in provided buffer
+ *      - LE_FAULT for any other errors
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_info_GetBootloaderVersion
@@ -102,24 +206,12 @@ le_result_t pa_info_GetBootloaderVersion
     size_t versionSize       ///< [IN] Size of version buffer
 )
 {
-    le_result_t res;
-    char buffer[PA_INFO_IMEI_MAX_LEN+1];
-
-    res = le_cfg_QuickGetString(PA_SIMU_CFG_MODEM_ROOT "/info/bootVersion", buffer, sizeof(buffer), PA_SIMU_INFO_DEFAULT_BOOT_VERSION);
-
-    switch (res)
+    // added to simulate the LE_NOT_FOUND error
+    if (true == ApplySimuErrorCode)
     {
-        case LE_OK:
-            res = le_utf8_Copy(versionPtr, buffer, versionSize, NULL);
-            LE_WARN_IF(res != LE_OK, "Error when copying string: %d", res);
-            break;
-
-        default:
-            LE_FATAL("Unexpected result: %i", res);
-            break;
+        return SimuRes;
     }
-
-    return LE_OK;
+    return (le_utf8_Copy(versionPtr, BootLoaderVersion, versionSize, NULL));
 }
 
 
@@ -138,58 +230,7 @@ le_result_t pa_info_GetDeviceModel
     pa_info_DeviceModel_t model   ///< [OUT] Model string (null-terminated).
 )
 {
-    le_result_t res;
-    char buffer[PA_INFO_DEVICE_MODEL_MAX_LEN+1] = {0};
-    struct utsname unameStruct;
-
-    res = le_cfg_QuickGetString(PA_SIMU_CFG_MODEM_ROOT "/info/deviceModel", buffer, sizeof(buffer), "");
-
-    switch (res)
-    {
-        case LE_OK:
-            res = le_utf8_Copy(model, buffer, sizeof(pa_info_DeviceModel_t), NULL);
-            break;
-
-        default:
-            LE_FATAL("Unexpected result: %i", res);
-            break;
-    }
-
-    // Get arch from uname instead
-    if (buffer[0] == '\0')
-    {
-        int unameRes;
-
-        unameRes = uname(&unameStruct);
-        if (unameRes != 0)
-        {
-            LE_WARN("Unable to uname.");
-            return LE_FAULT;
-        }
-
-        if ( (0 == strcmp(unameStruct.machine, "armv5tejl")) ||
-             (0 == strcmp(unameStruct.machine, "armv7l")) )
-        {
-            res = le_utf8_Copy(model, "VIRT_ARM", sizeof(pa_info_DeviceModel_t), NULL);
-        }
-        else if (0 == strcmp(unameStruct.machine, "i686"))
-        {
-            res = le_utf8_Copy(model, "VIRT_X86", sizeof(pa_info_DeviceModel_t), NULL);
-        }
-        else
-        {
-            LE_ERROR("Unknown machine '%s'", unameStruct.machine);
-            return LE_FAULT;
-        }
-    }
-
-    if (res != LE_OK)
-    {
-        LE_WARN("Error when copying string: %d", res);
-        return LE_FAULT;
-    }
-
-    return LE_OK;
+    return (le_utf8_Copy(model, DeviceModel, sizeof(pa_info_DeviceModel_t), NULL));
 }
 
 
@@ -449,6 +490,46 @@ le_result_t pa_info_GetPlatformSerialNumber
 
     size_t platformSerialNumberStrNumElements
         ///< [IN]
+)
+{
+    return LE_FAULT;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the RF devices working status (i.e. working or broken) of modem's RF devices such as
+ * power amplifier, antenna switch and transceiver. That status is updated every time the module
+ * power on.
+ *
+ * @return
+ *      - LE_OK on success
+ *      - LE_UNSUPPORTED request not supported
+ *      - LE_FAULT function failed to get the RF devices working status
+ *      - LE_OVERFLOW the number of statuses exceeds the maximum size
+ *        (LE_INFO_RF_DEVICES_STATUS_MAX)
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_info_GetRfDeviceStatus
+(
+    uint16_t* manufacturedIdPtr,
+        ///< [OUT] Manufactured identifier (MID)
+
+    size_t* manufacturedIdNumElementsPtr,
+        ///< [INOUT]
+
+    uint8_t* productIdPtr,
+        ///< [OUT] Product identifier (PID)
+
+    size_t* productIdNumElementsPtr,
+        ///< [INOUT]
+
+    bool* statusPtr,
+        ///< [OUT] Status of the specified device (MID,PID):
+        ///<       0 means something wrong in the RF device,
+        ///<       1 means no error found in the RF device
+
+    size_t* statusNumElementsPtr
+        ///< [INOUT]
 )
 {
     return LE_FAULT;

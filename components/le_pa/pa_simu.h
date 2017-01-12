@@ -9,18 +9,13 @@
 
 #define PA_SIMU_CFG_MODEM_ROOT  "/simulation/modem"
 
-/* Info */
-
-#define PA_SIMU_INFO_DEFAULT_IMEI           "314159265358979"
-#define PA_SIMU_INFO_DEFAULT_FW_VERSION     "Firmware 1.00"
-#define PA_SIMU_INFO_DEFAULT_BOOT_VERSION   "Bootloader 1.00"
-
 /* Radio Control */
 
 #define PA_SIMU_MRC_DEFAULT_NAME    "Simu"
 #define PA_SIMU_MRC_DEFAULT_RAT     "UMTS"
 #define PA_SIMU_MRC_DEFAULT_MCC     "01"
 #define PA_SIMU_MRC_DEFAULT_MNC     "001"
+
 
 le_result_t mrc_simu_Init
 (
