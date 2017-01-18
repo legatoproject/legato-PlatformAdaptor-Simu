@@ -45,6 +45,36 @@ static le_event_Id_t NewRegStateEvent;
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * This event is reported when a Circuit Switched change indication is received from the
+ * modem. The report data is allocated from the associated pool.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_event_Id_t CSChangeEventId;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Pool for Circuit Switched change indication reporting.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_mem_PoolRef_t CSChangePool;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This event is reported when a Packet Switched change indication is received from the
+ * modem. The report data is allocated from the associated pool.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_event_Id_t PSChangeEventId;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Pool for Packet Switched change indication reporting.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_mem_PoolRef_t PSChangePool;
+
+//--------------------------------------------------------------------------------------------------
+/**
  * The pa_mrc_ScanInformation_t pool
  */
 //--------------------------------------------------------------------------------------------------
@@ -1055,6 +1085,116 @@ le_result_t pa_mrc_GetTdScdmaBandCapabilities
     return LE_OK;
 }
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the Packet Switched state.
+ *
+ * @return
+ *  - LE_FAULT  Function failed.
+ *  - LE_OK     Function succeeded.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_GetPacketSwitchedState
+(
+    le_mrc_ServiceState_t* statePtr     ///< [OUT] The current Packet switched state.
+)
+{
+    *statePtr = LE_MRC_ATTACHED;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the Circuit Switched state.
+ *
+ * @return
+ *  - LE_FAULT  Function failed.
+ *  - LE_OK     Function succeeded.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_GetCircuitSwitchedState
+(
+    le_mrc_ServiceState_t* statePtr   ///< [OUT] The current Circuit switched state.
+)
+{
+    *statePtr = LE_MRC_ATTACHED;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to register a handler for Circuit Switched change handling.
+ *
+ * @return A handler reference, which is only needed for later removal of the handler.
+ *
+ * @note Doesn't return on failure, so there's no need to check the return value for errors.
+ */
+//--------------------------------------------------------------------------------------------------
+le_event_HandlerRef_t pa_mrc_SetCSChangeHandler
+(
+    pa_mrc_ServiceChangeHdlrFunc_t handlerFuncPtr ///< [IN] The handler function.
+)
+{
+    LE_ASSERT(handlerFuncPtr != NULL);
+
+    return le_event_AddHandler("CSChangeHandler",
+                               CSChangeEventId,
+                               (le_event_HandlerFunc_t) handlerFuncPtr);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to unregister the handler for Circuit Switched change
+ * handling.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_mrc_RemoveCSChangeHandler
+(
+    le_event_HandlerRef_t handlerRef
+)
+{
+    le_event_RemoveHandler(handlerRef);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to register a handler for Packet Switched change handling.
+ *
+ * @return A handler reference, which is only needed for later removal of the handler.
+ *
+ * @note Doesn't return on failure, so there's no need to check the return value for errors.
+ */
+//--------------------------------------------------------------------------------------------------
+le_event_HandlerRef_t pa_mrc_SetPSChangeHandler
+(
+    pa_mrc_ServiceChangeHdlrFunc_t handlerFuncPtr ///< [IN] The handler function.
+)
+{
+    LE_ASSERT(handlerFuncPtr != NULL);
+
+    return le_event_AddHandler("PSChangeHandler",
+                               CSChangeEventId,
+                               (le_event_HandlerFunc_t) handlerFuncPtr);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to unregister the handler for Packet Switched change
+ * handling.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_mrc_RemovePSChangeHandler
+(
+    le_event_HandlerRef_t handlerRef
+)
+{
+    le_event_RemoveHandler(handlerRef);
+}
+
 
 /**
  * MRC Stub initialization.
@@ -1070,6 +1210,11 @@ le_result_t mrc_simu_Init
 
     NewRegStateEvent = le_event_CreateIdWithRefCounting("NewRegStateEvent");
     RatChangeEvent = le_event_CreateIdWithRefCounting("RatChangeEvent");
+
+    CSChangeEventId = le_event_CreateIdWithRefCounting("CSChangeEvent");
+    CSChangePool = le_mem_CreatePool("CSChangePool", sizeof(le_mrc_ServiceState_t));
+    PSChangeEventId = le_event_CreateIdWithRefCounting("PSChangeEvent");
+    PSChangePool = le_mem_CreatePool("PSChangePool", sizeof(le_mrc_ServiceState_t));
 
     ScanInformationPool = le_mem_CreatePool("ScanInformationPool", sizeof(pa_mrc_ScanInformation_t));
 
