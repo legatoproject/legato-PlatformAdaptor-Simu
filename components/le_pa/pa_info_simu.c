@@ -14,12 +14,48 @@
 
 #include <sys/utsname.h>
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * Info parameters
+ */
+//--------------------------------------------------------------------------------------------------
 static pa_info_Imei_t Imei = PA_SIMU_INFO_DEFAULT_IMEI;
 static pa_info_ImeiSv_t ImeiSv = PA_SIMU_INFO_DEFAULT_IMEISV;
 static pa_info_DeviceModel_t DeviceModel = PA_SIMU_INFO_DEFAULT_DEVICE_MODEL;
 static char FirmwareVersion[PA_INFO_VERS_MAX_BYTES] = PA_SIMU_INFO_DEFAULT_FW_VERSION;
 static char BootLoaderVersion[PA_INFO_VERS_MAX_BYTES] = PA_SIMU_INFO_DEFAULT_BOOT_VERSION;
+static char Meid[LE_INFO_MAX_MEID_BYTES] = PA_SIMU_INFO_DEFAULT_MEID;
+static char Esn[LE_INFO_MAX_ESN_BYTES] = PA_SIMU_INFO_DEFAULT_ESN;
+static char Min[LE_INFO_MAX_MIN_BYTES] = PA_SIMU_INFO_DEFAULT_MIN;
+static uint16_t Prl = PA_SIMU_INFO_DEFAULT_PRL;
+static bool PrlFlag = false;
+static char Nai[LE_INFO_MAX_NAI_BYTES] = PA_SIMU_INFO_DEFAULT_NAI;
+static char MfrName[LE_INFO_MAX_MFR_NAME_BYTES] = PA_SIMU_INFO_DEFAULT_MFR;
+static char PriIdPn[LE_INFO_MAX_PRIID_PN_BYTES] = PA_SIMU_INFO_DEFAULT_PRIID_PN;
+static char PriIdRev[LE_INFO_MAX_PRIID_REV_BYTES] = PA_SIMU_INFO_DEFAULT_PRIID_REV;
+static char Sku[LE_INFO_MAX_SKU_BYTES] = PA_SIMU_INFO_DEFAULT_SKU;
+static char Psn[LE_INFO_MAX_PSN_BYTES] = PA_SIMU_INFO_DEFAULT_PSN;
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * Rf device status
+ */
+//--------------------------------------------------------------------------------------------------
+typedef struct {
+    bool isValid;
+    uint16_t manufacturedId;
+    uint8_t productId;
+    bool status;
+}
+RfDeviceStatus_t;
+
+static RfDeviceStatus_t RfDeviceStatus[LE_INFO_RF_DEVICES_STATUS_MAX] = {{0}};
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * simu return values
+ */
+//--------------------------------------------------------------------------------------------------
 static le_result_t SimuRes;
 static bool        ApplySimuErrorCode;
 
@@ -63,8 +99,7 @@ void pa_infoSimu_SetImei
     pa_info_Imei_t imei
 )
 {
-    strncpy(Imei, imei, PA_INFO_IMEI_MAX_LEN);
-    Imei[PA_INFO_IMEI_MAX_LEN]='\0';
+    le_utf8_Copy(Imei, imei, PA_INFO_IMEI_MAX_LEN, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -78,8 +113,7 @@ void pa_infoSimu_SetImeiSv
     pa_info_ImeiSv_t imeiSv
 )
 {
-    strncpy(ImeiSv, imeiSv, PA_INFO_IMEISV_MAX_LEN);
-    ImeiSv[PA_INFO_IMEISV_MAX_LEN]='\0';
+    le_utf8_Copy(ImeiSv, imeiSv, PA_INFO_IMEISV_MAX_LEN, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -93,8 +127,7 @@ void pa_infoSimu_SetFirmwareVersion
     char* firmwareVersionPtr
 )
 {
-    strncpy(FirmwareVersion, firmwareVersionPtr, PA_INFO_VERS_MAX_LEN);
-    FirmwareVersion[PA_INFO_VERS_MAX_LEN]='\0';
+    le_utf8_Copy(FirmwareVersion, firmwareVersionPtr, PA_INFO_VERS_MAX_LEN, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -108,8 +141,7 @@ void pa_infoSimu_SetBootloaderVersion
     char* bootLoaderVersionPtr
 )
 {
-    strncpy(BootLoaderVersion, bootLoaderVersionPtr, PA_INFO_VERS_MAX_LEN);
-    BootLoaderVersion[PA_INFO_VERS_MAX_LEN]='\0';
+    le_utf8_Copy(BootLoaderVersion, bootLoaderVersionPtr, PA_INFO_VERS_MAX_LEN, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -123,8 +155,176 @@ void pa_infoSimu_SetDeviceModel
     pa_info_DeviceModel_t deviceModel
 )
 {
-    strncpy(DeviceModel, deviceModel, PA_INFO_MODEL_MAX_LEN);
-    DeviceModel[PA_INFO_MODEL_MAX_LEN]='\0';
+    le_utf8_Copy(DeviceModel, deviceModel, PA_INFO_MODEL_MAX_LEN, NULL);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the CDMA device Mobile Equipment Identifier (MEID).
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetMeid
+(
+    char* meidStrPtr
+)
+{
+    le_utf8_Copy(Meid, meidStrPtr, LE_INFO_MAX_MEID_LEN, NULL);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the CDMA Electronic Serial Number (ESN) of the device.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetEsn
+(
+    char* esnStrPtr
+)
+{
+    le_utf8_Copy(Esn, esnStrPtr, LE_INFO_MAX_ESN_LEN, NULL);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the CDMA Mobile Identification Number (MIN).
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetMin
+(
+    char* minStrPtr
+)
+{
+    le_utf8_Copy(Min, minStrPtr, LE_INFO_MAX_MIN_LEN, NULL);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the version of Preferred Roaming List (PRL).
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetPrlVersion
+(
+    uint16_t prlVersion
+)
+{
+    Prl = prlVersion;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the Cdma PRL only preferences Flag.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetPrlOnlyPreference
+(
+    bool prlOnlyPreference
+)
+{
+    PrlFlag = prlOnlyPreference;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the CDMA Network Access Identifier (NAI) string in ASCII text.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetNai
+(
+    char* naiStrPtr
+)
+{
+    le_utf8_Copy(Nai, naiStrPtr, LE_INFO_MAX_NAI_LEN, NULL);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the Manufacturer Name.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetManufacturerName
+(
+    char* mfrNameStrPtr
+)
+{
+    le_utf8_Copy(MfrName, mfrNameStrPtr, LE_INFO_MAX_MFR_NAME_LEN, NULL);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the Product Requirement Information Part Number and Revision Number strings.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetPriId
+(
+    char* priIdPnStrPtr,
+    char* priIdRevStrPtr
+)
+{
+    le_utf8_Copy(PriIdPn, priIdPnStrPtr, LE_INFO_MAX_PRIID_PN_LEN, NULL);
+
+    le_utf8_Copy(PriIdRev, priIdRevStrPtr, LE_INFO_MAX_PRIID_REV_LEN, NULL);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the product stock keeping unit number (SKU).
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetSku
+(
+    char* skuIdStrPtr
+)
+{
+    le_utf8_Copy(Sku, skuIdStrPtr, LE_INFO_MAX_SKU_LEN, NULL);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the Platform Serial Number (PSN) string.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetPlatformSerialNumber
+(
+    char* platformSerialNumberStrPtr
+)
+{
+    le_utf8_Copy(Psn, platformSerialNumberStrPtr, LE_INFO_MAX_PSN_LEN, NULL);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the Rf Device Status.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetRfDeviceStatus
+(
+    uint16_t index,
+    uint16_t manufacturedId,
+    uint8_t productId,
+    bool status
+)
+{
+    // set the status field if index is below max device status
+    if (index < LE_INFO_RF_DEVICES_STATUS_MAX)
+    {
+        RfDeviceStatus[index].isValid = true;
+        RfDeviceStatus[index].manufacturedId = manufacturedId;
+        RfDeviceStatus[index].productId = productId;
+        RfDeviceStatus[index].status = status;
+        return;
+    }
+    LE_ERROR("Failed to set Rf Device Status for index = %d",index);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -246,11 +446,20 @@ le_result_t pa_info_GetDeviceModel
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_info_GetMeid
 (
-    char* meidStr,           ///< [OUT] Firmware version string
+    char* meidStrPtr,           ///< [OUT] Firmware version string
     size_t meidStrSize       ///< [IN] Size of version buffer
 )
 {
-    return LE_FAULT;
+    if (true == ApplySimuErrorCode)
+    {
+        return SimuRes;
+    }
+
+    if (meidStrSize < strlen(Meid))
+    {
+        return LE_OVERFLOW;
+    }
+    return (le_utf8_Copy(meidStrPtr, Meid, meidStrSize, NULL));
 }
 
 
@@ -266,7 +475,7 @@ le_result_t pa_info_GetMeid
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_info_GetEsn
 (
-    char* esnStr,
+    char* esnStrPtr,
         ///< [OUT]
         ///< The Electronic Serial Number (ESN) of the device
         ///<  string (null-terminated).
@@ -275,7 +484,17 @@ le_result_t pa_info_GetEsn
         ///< [IN]
 )
 {
-    return LE_FAULT;
+    if (true == ApplySimuErrorCode)
+    {
+        return SimuRes;
+    }
+
+    if (esnStrNumElements < strlen(Esn))
+    {
+        return LE_OVERFLOW;
+    }
+
+    return (le_utf8_Copy(esnStrPtr, Esn, esnStrNumElements, NULL));
 }
 
 
@@ -291,11 +510,21 @@ le_result_t pa_info_GetEsn
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_info_GetMin
 (
-    char        *minStr,    ///< [OUT] The phone Number
+    char        *minStrPtr,    ///< [OUT] The phone Number
     size_t       minStrSize ///< [IN]  Size of phoneNumberStr
 )
 {
-    return LE_FAULT;
+    if (true == ApplySimuErrorCode)
+    {
+        return SimuRes;
+    }
+
+    if (minStrSize < strlen(Min))
+    {
+        return LE_OVERFLOW;
+    }
+
+    return (le_utf8_Copy(minStrPtr, Min, minStrSize, NULL));
 }
 
 
@@ -306,6 +535,7 @@ le_result_t pa_info_GetMin
  * @return
  *      - LE_OK            The function succeeded.
  *      - LE_FAULT         The function failed to get the value.
+ *      - LE_NOT_FOUND     The information is not available.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_info_GetPrlVersion
@@ -315,7 +545,13 @@ le_result_t pa_info_GetPrlVersion
         ///< The Preferred Roaming List (PRL) version.
 )
 {
-    return LE_FAULT;
+    if (true == ApplySimuErrorCode)
+    {
+        return SimuRes;
+    }
+
+    *prlVersionPtr = Prl;
+    return LE_OK;
 }
 
 
@@ -334,7 +570,12 @@ le_result_t pa_info_GetPrlOnlyPreference
     bool* prlOnlyPreferencePtr      ///< The Cdma PRL only preferences status.
 )
 {
-    return LE_FAULT;
+    if (true == ApplySimuErrorCode)
+    {
+        return SimuRes;
+    }
+    *prlOnlyPreferencePtr = PrlFlag;
+    return LE_OK;
 }
 
 
@@ -350,7 +591,7 @@ le_result_t pa_info_GetPrlOnlyPreference
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_info_GetNai
 (
-    char* naiStr,
+    char* naiStrPtr,
         ///< [OUT]
         ///< The Network Access Identifier (NAI)
         ///<  string (null-terminated).
@@ -359,7 +600,17 @@ le_result_t pa_info_GetNai
         ///< [IN]
 )
 {
-    return LE_FAULT;
+    if (true == ApplySimuErrorCode)
+    {
+        return SimuRes;
+    }
+
+    if (naiStrNumElements < strlen(Nai))
+    {
+        return LE_OVERFLOW;
+    }
+
+    return (le_utf8_Copy(naiStrPtr, Nai, naiStrNumElements, NULL));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -374,7 +625,7 @@ le_result_t pa_info_GetNai
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_info_GetManufacturerName
 (
-    char* mfrNameStr,
+    char* mfrNameStrPtr,
         ///< [OUT]
         ///< The Manufacturer Name string (null-terminated).
 
@@ -382,7 +633,17 @@ le_result_t pa_info_GetManufacturerName
         ///< [IN]
 )
 {
-    return LE_FAULT;
+    if (true == ApplySimuErrorCode)
+    {
+        return SimuRes;
+    }
+
+    if (mfrNameStrNumElements < strlen(MfrName))
+    {
+        return LE_OVERFLOW;
+    }
+
+    return (le_utf8_Copy(mfrNameStrPtr, MfrName, mfrNameStrNumElements, NULL));
 }
 
 
@@ -398,7 +659,7 @@ le_result_t pa_info_GetManufacturerName
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_info_GetPriId
 (
-    char* priIdPnStr,
+    char* priIdPnStrPtr,
         ///< [OUT]
         ///< The Product Requirement Information Identifier
         ///<  (PRI ID) Part Number string (null-terminated).
@@ -406,7 +667,7 @@ le_result_t pa_info_GetPriId
     size_t priIdPnStrNumElements,
         ///< [IN]
 
-    char* priIdRevStr,
+    char* priIdRevStrPtr,
         ///< [OUT]
         ///< The Product Requirement Information Identifier
         ///<  (PRI ID) Revision Number string (null-terminated).
@@ -415,29 +676,34 @@ le_result_t pa_info_GetPriId
         ///< [IN]
 )
 {
-    le_result_t res = LE_FAULT;
-
-    if ( (priIdPnStr == NULL) || (priIdRevStr == NULL))
+    if (true == ApplySimuErrorCode)
     {
-        LE_ERROR("priIdPnStr or priIdRevStr is NULL.");
-        res =  LE_FAULT;
+        return SimuRes;
     }
 
-    if (priIdPnStrNumElements < LE_INFO_MAX_PRIID_PN_BYTES)
+    if ( (priIdPnStrPtr == NULL) || (priIdRevStrPtr == NULL))
+    {
+        LE_ERROR("priIdPnStr or priIdRevStr is NULL.");
+        return LE_FAULT;
+    }
+
+    if (priIdPnStrNumElements < strlen(PriIdPn))
     {
         LE_ERROR("priIdPnStrNumElements lentgh (%d) too small < %d",
                         (int) priIdPnStrNumElements, LE_INFO_MAX_PRIID_PN_BYTES);
-        res = LE_OVERFLOW;
+        return LE_OVERFLOW;
     }
 
-    if (priIdRevStrNumElements < LE_INFO_MAX_PRIID_REV_BYTES)
+    if (priIdRevStrNumElements < strlen(PriIdRev))
     {
         LE_ERROR("priIdRevStrNumElements lentgh (%d) too small < %d",
                         (int) priIdRevStrNumElements, LE_INFO_MAX_PRIID_REV_BYTES);
-        res = LE_OVERFLOW;
+        return LE_OVERFLOW;
     }
 
-    return res;
+    le_utf8_Copy(priIdPnStrPtr, PriIdPn, priIdPnStrNumElements, NULL);
+    le_utf8_Copy(priIdRevStrPtr, PriIdRev, priIdRevStrNumElements, NULL);
+    return LE_OK;
 }
 
 
@@ -453,22 +719,30 @@ le_result_t pa_info_GetPriId
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_info_GetSku
 (
-    char* skuIdStr,
+    char* skuIdStrPtr,
         ///< [OUT] Product SKU ID string.
 
     size_t skuIdStrNumElements
         ///< [IN]
 )
 {
-    le_result_t res = LE_OK;
-
-    if (skuIdStr == NULL)
+    if (true == ApplySimuErrorCode)
     {
-        LE_ERROR("skuIdStr is NULL.");
-        res =  LE_FAULT;
+        return SimuRes;
     }
 
-    return res;
+    if (skuIdStrPtr == NULL)
+    {
+        LE_ERROR("skuIdStr is NULL.");
+        return LE_FAULT;
+    }
+
+    if (skuIdStrNumElements < strlen(Sku))
+    {
+        return LE_OVERFLOW;
+    }
+
+    return (le_utf8_Copy(skuIdStrPtr, Sku, skuIdStrNumElements, NULL));
 }
 
 
@@ -484,7 +758,7 @@ le_result_t pa_info_GetSku
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_info_GetPlatformSerialNumber
 (
-    char* platformSerialNumberStr,
+    char* platformSerialNumberStrPtr,
         ///< [OUT]
         ///< Platform Serial Number string.
 
@@ -492,7 +766,18 @@ le_result_t pa_info_GetPlatformSerialNumber
         ///< [IN]
 )
 {
-    return LE_FAULT;
+    if (true == ApplySimuErrorCode)
+    {
+        return SimuRes;
+    }
+
+    if (platformSerialNumberStrNumElements < strlen(Psn))
+    {
+        return LE_OVERFLOW;
+    }
+
+    return (le_utf8_Copy(platformSerialNumberStrPtr, Psn,
+                         platformSerialNumberStrNumElements, NULL));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -532,5 +817,49 @@ le_result_t pa_info_GetRfDeviceStatus
         ///< [INOUT]
 )
 {
-    return LE_FAULT;
+    uint16_t i = 0;
+    uint16_t index = 0;
+    size_t statusLen = 0;
+
+    if (true == ApplySimuErrorCode)
+    {
+        return SimuRes;
+    }
+
+    // find the status length
+    for (i=0; i<LE_INFO_RF_DEVICES_STATUS_MAX; i++)
+    {
+        if (true == RfDeviceStatus[i].isValid)
+        {
+            statusLen = statusLen+1;
+        }
+    }
+    // check for overflow
+    if (statusLen > LE_INFO_RF_DEVICES_STATUS_MAX)
+    {
+        LE_ERROR("Status length overflow !!");
+        // Update returned length
+        *manufacturedIdNumElementsPtr = 0;
+        *productIdNumElementsPtr = 0;
+        *statusNumElementsPtr = 0;
+        return LE_OVERFLOW;
+    }
+
+    // Update returned length
+    *manufacturedIdNumElementsPtr = statusLen;
+    *productIdNumElementsPtr = statusLen;
+    *statusNumElementsPtr = statusLen;
+
+    // Get the status fields
+    for (i=0; i<LE_INFO_RF_DEVICES_STATUS_MAX; i++)
+    {
+        if (true == RfDeviceStatus[i].isValid)
+        {
+            manufacturedIdPtr[index] = RfDeviceStatus[i].manufacturedId;
+            productIdPtr[index] = RfDeviceStatus[i].productId;
+            statusPtr[index] = RfDeviceStatus[i].status;
+            index = index+1;
+        }
+    }
+    return LE_OK;
 }
