@@ -3,7 +3,7 @@
  *
  * This file contains the source code of the low level Audio API for AMR playback / capture
  *
- * Copyright (C) Sierra Wireless Inc. Use of this work is subject to license.
+ * Copyright (C) Sierra Wireless Inc.
  */
 
 #include "legato.h"

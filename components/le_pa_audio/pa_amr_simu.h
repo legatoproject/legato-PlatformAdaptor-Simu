@@ -2,7 +2,7 @@
  *
  * Legato @ref pa_amr_simu include file.
  *
- * Copyright (C) Sierra Wireless Inc. Use of this work is subject to license.
+ * Copyright (C) Sierra Wireless Inc.
  */
 
 #ifndef PA_AMR_SIMU_H_INCLUDE_GUARD

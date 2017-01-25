@@ -5,7 +5,7 @@
  *
  * <HR>
  *
- * Copyright (C) Sierra Wireless Inc. Use of this work is subject to license.
+ * Copyright (C) Sierra Wireless Inc.
  */
 
 #ifndef PA_RSIM_SIMU_H_INCLUDE_GUARD

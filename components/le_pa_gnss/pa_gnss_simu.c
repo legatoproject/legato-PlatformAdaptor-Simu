@@ -3,7 +3,7 @@
  *
  * Simulation implementation of @ref c_pa_gnss API.
  *
- * Copyright (C) Sierra Wireless Inc. Use of this work is subject to license.
+ * Copyright (C) Sierra Wireless Inc.
  */
 
 #include <pa_gnss.h>
