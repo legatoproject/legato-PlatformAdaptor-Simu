@@ -1035,8 +1035,9 @@ le_result_t pa_mrc_GetServingCellLteTracAreaCode
  * Get the Band capabilities
  *
  * @return
- * - LE_OK              on success
- * - LE_FAULT           on failure
+ *  - LE_OK              on success
+ *  - LE_FAULT           on failure
+ *  - LE_UNSUPPORTED     The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetBandCapabilities
@@ -1053,8 +1054,9 @@ le_result_t pa_mrc_GetBandCapabilities
  * Get the LTE Band capabilities
  *
  * @return
- * - LE_OK              on success
- * - LE_FAULT           on failure
+ *  - LE_OK              on success
+ *  - LE_FAULT           on failure
+ *  - LE_UNSUPPORTED     The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetLteBandCapabilities
@@ -1072,8 +1074,9 @@ le_result_t pa_mrc_GetLteBandCapabilities
  * Get the TD-SCDMA Band capabilities
  *
  * @return
- * - LE_OK              on success
- * - LE_FAULT           on failure
+ *  - LE_OK              on success
+ *  - LE_FAULT           on failure
+ *  - LE_UNSUPPORTED     The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetTdScdmaBandCapabilities
