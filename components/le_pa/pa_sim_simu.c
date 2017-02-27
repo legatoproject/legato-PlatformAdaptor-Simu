@@ -16,7 +16,7 @@
 static uint32_t PinRemainingAttempts = PIN_REMAINING_ATTEMPS_DEFAULT;
 static uint32_t PukRemainingAttempts = PUK_REMAINING_ATTEMPS_DEFAULT;
 static le_sim_Id_t SelectedCard = 1;
-static le_sim_States_t SimState;
+static le_sim_States_t SimState = LE_SIM_READY;
 static char HomeMcc[LE_MRC_MCC_BYTES]="";
 static char HomeMnc[LE_MRC_MNC_BYTES]="";
 static pa_sim_Imsi_t Imsi = "";

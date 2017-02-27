@@ -14,7 +14,7 @@
 #include "pa_ips_simu.h"
 #include "pa_temp.h"
 #include "pa_antenna.h"
-
+#include "pa_rsim_simu.h"
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -60,4 +60,8 @@ COMPONENT_INIT
 
     res = pa_antenna_Init();
     LE_FATAL_IF(res != LE_OK, "PA Antenna Failed");
+
+    res = pa_rsim_Init();
+    LE_FATAL_IF(res != LE_OK, "PA RemoteSim Init Failed");
 }
+
