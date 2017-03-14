@@ -67,6 +67,16 @@ void pa_fwupdateSimu_SetSyncState
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Set the stub init download request to false
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_fwupdateSimu_SetInitDownloadState
+(
+    void
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Simulate function to check if a reset was requested
  */
 //--------------------------------------------------------------------------------------------------
@@ -97,13 +107,32 @@ void pa_fwupdateSimu_GetSwUpdateState
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Simulate function to check if an init download was requested
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_fwupdateSimu_GetInitDownloadState
+(
+    bool* isInitDownload   ///< [OUT] indicate if an init download was requested
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Set the simulated SW update state
  */
 //--------------------------------------------------------------------------------------------------
-void pa_fwupdateSimu_setSwUpdateState
+void pa_fwupdateSimu_SetSwUpdateState
 (
     pa_fwupdate_state_t state   ///< [IN] simulated SW update state
 );
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the simulated resume position
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_fwupdateSimu_SetResumePosition
+(
+    size_t position   ///< [IN] simulated resume position
+);
 #endif // PA_FWUPDATE_SIMU_H_INCLUDE_GUARD
 
