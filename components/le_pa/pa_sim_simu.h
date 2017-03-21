@@ -10,6 +10,9 @@
 
 #include "pa_sim.h"
 
+#define PA_SIMU_SIM_DEFAULT_MCC     "01"
+#define PA_SIMU_SIM_DEFAULT_MNC     "001"
+
 //--------------------------------------------------------------------------------------------------
 /**
  * This function must be called to set the Home Network MCC MNC.

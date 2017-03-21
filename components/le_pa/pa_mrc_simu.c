@@ -7,9 +7,9 @@
  */
 
 #include "legato.h"
-#include "pa_mrc.h"
-
 #include "pa_simu.h"
+#include "pa_mrc_simu.h"
+#include "pa_sim_simu.h"
 
 //--------------------------------------------------------------------------------------------------
 /**

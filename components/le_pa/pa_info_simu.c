@@ -11,6 +11,7 @@
 #include "interfaces.h"
 #include "pa_simu.h"
 #include "pa_info_simu.h"
+#include "simuConfig.h"
 
 #include <sys/utsname.h>
 
@@ -61,6 +62,35 @@ static bool        ApplySimuErrorCode;
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Definition of settings that are settable through simuConfig.
+ */
+//--------------------------------------------------------------------------------------------------
+const simuConfig_Property_t ConfigProperties[] = {
+    { .name = "psn",
+      .setter = { .type = SIMUCONFIG_HANDLER_STRING,
+                  .handler = { .stringFn = pa_infoSimu_SetPlatformSerialNumber } } },
+    { .name = "imei",
+      .setter = { .type = SIMUCONFIG_HANDLER_STRING,
+                  .handler = { .stringFn = pa_infoSimu_SetImei } } },
+    { .name = "imeiSv",
+      .setter = { .type = SIMUCONFIG_HANDLER_STRING,
+                  .handler = { .stringFn = pa_infoSimu_SetImeiSv } } },
+    {0}
+};
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Services available for configuration.
+ */
+//--------------------------------------------------------------------------------------------------
+const simuConfig_Service_t ConfigService = {
+    "info",
+    PA_SIMU_CFG_MODEM_ROOT "/info",
+    ConfigProperties
+};
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Reset the return error management
  *
  */
@@ -96,10 +126,10 @@ void pa_infoSimu_SetErrorCase
 //--------------------------------------------------------------------------------------------------
 void pa_infoSimu_SetImei
 (
-    pa_info_Imei_t imei
+    const pa_info_Imei_t imei
 )
 {
-    le_utf8_Copy(Imei, imei, PA_INFO_IMEI_MAX_LEN, NULL);
+    le_utf8_Copy(Imei, imei, PA_INFO_IMEI_MAX_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -110,10 +140,10 @@ void pa_infoSimu_SetImei
 //--------------------------------------------------------------------------------------------------
 void pa_infoSimu_SetImeiSv
 (
-    pa_info_ImeiSv_t imeiSv
+    const pa_info_ImeiSv_t imeiSv
 )
 {
-    le_utf8_Copy(ImeiSv, imeiSv, PA_INFO_IMEISV_MAX_LEN, NULL);
+    le_utf8_Copy(ImeiSv, imeiSv, PA_INFO_IMEISV_MAX_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -124,10 +154,10 @@ void pa_infoSimu_SetImeiSv
 //--------------------------------------------------------------------------------------------------
 void pa_infoSimu_SetFirmwareVersion
 (
-    char* firmwareVersionPtr
+    const char* firmwareVersionPtr
 )
 {
-    le_utf8_Copy(FirmwareVersion, firmwareVersionPtr, PA_INFO_VERS_MAX_LEN, NULL);
+    le_utf8_Copy(FirmwareVersion, firmwareVersionPtr, PA_INFO_VERS_MAX_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -138,10 +168,10 @@ void pa_infoSimu_SetFirmwareVersion
 //--------------------------------------------------------------------------------------------------
 void pa_infoSimu_SetBootloaderVersion
 (
-    char* bootLoaderVersionPtr
+    const char* bootLoaderVersionPtr
 )
 {
-    le_utf8_Copy(BootLoaderVersion, bootLoaderVersionPtr, PA_INFO_VERS_MAX_LEN, NULL);
+    le_utf8_Copy(BootLoaderVersion, bootLoaderVersionPtr, PA_INFO_VERS_MAX_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -155,7 +185,7 @@ void pa_infoSimu_SetDeviceModel
     pa_info_DeviceModel_t deviceModel
 )
 {
-    le_utf8_Copy(DeviceModel, deviceModel, PA_INFO_MODEL_MAX_LEN, NULL);
+    le_utf8_Copy(DeviceModel, deviceModel, PA_INFO_MODEL_MAX_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -166,10 +196,10 @@ void pa_infoSimu_SetDeviceModel
 //--------------------------------------------------------------------------------------------------
 void pa_infoSimu_SetMeid
 (
-    char* meidStrPtr
+    const char* meidStrPtr
 )
 {
-    le_utf8_Copy(Meid, meidStrPtr, LE_INFO_MAX_MEID_LEN, NULL);
+    le_utf8_Copy(Meid, meidStrPtr, LE_INFO_MAX_MEID_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -180,10 +210,10 @@ void pa_infoSimu_SetMeid
 //--------------------------------------------------------------------------------------------------
 void pa_infoSimu_SetEsn
 (
-    char* esnStrPtr
+    const char* esnStrPtr
 )
 {
-    le_utf8_Copy(Esn, esnStrPtr, LE_INFO_MAX_ESN_LEN, NULL);
+    le_utf8_Copy(Esn, esnStrPtr, LE_INFO_MAX_ESN_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -194,10 +224,10 @@ void pa_infoSimu_SetEsn
 //--------------------------------------------------------------------------------------------------
 void pa_infoSimu_SetMin
 (
-    char* minStrPtr
+    const char* minStrPtr
 )
 {
-    le_utf8_Copy(Min, minStrPtr, LE_INFO_MAX_MIN_LEN, NULL);
+    le_utf8_Copy(Min, minStrPtr, LE_INFO_MAX_MIN_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -236,10 +266,10 @@ void pa_infoSimu_SetPrlOnlyPreference
 //--------------------------------------------------------------------------------------------------
 void pa_infoSimu_SetNai
 (
-    char* naiStrPtr
+    const char* naiStrPtr
 )
 {
-    le_utf8_Copy(Nai, naiStrPtr, LE_INFO_MAX_NAI_LEN, NULL);
+    le_utf8_Copy(Nai, naiStrPtr, LE_INFO_MAX_NAI_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -250,10 +280,10 @@ void pa_infoSimu_SetNai
 //--------------------------------------------------------------------------------------------------
 void pa_infoSimu_SetManufacturerName
 (
-    char* mfrNameStrPtr
+    const char* mfrNameStrPtr
 )
 {
-    le_utf8_Copy(MfrName, mfrNameStrPtr, LE_INFO_MAX_MFR_NAME_LEN, NULL);
+    le_utf8_Copy(MfrName, mfrNameStrPtr, LE_INFO_MAX_MFR_NAME_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -264,13 +294,12 @@ void pa_infoSimu_SetManufacturerName
 //--------------------------------------------------------------------------------------------------
 void pa_infoSimu_SetPriId
 (
-    char* priIdPnStrPtr,
-    char* priIdRevStrPtr
+    const char* priIdPnStrPtr,
+    const char* priIdRevStrPtr
 )
 {
-    le_utf8_Copy(PriIdPn, priIdPnStrPtr, LE_INFO_MAX_PRIID_PN_LEN, NULL);
-
-    le_utf8_Copy(PriIdRev, priIdRevStrPtr, LE_INFO_MAX_PRIID_REV_LEN, NULL);
+    le_utf8_Copy(PriIdPn, priIdPnStrPtr, LE_INFO_MAX_PRIID_PN_BYTES, NULL);
+    le_utf8_Copy(PriIdRev, priIdRevStrPtr, LE_INFO_MAX_PRIID_REV_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -281,10 +310,10 @@ void pa_infoSimu_SetPriId
 //--------------------------------------------------------------------------------------------------
 void pa_infoSimu_SetSku
 (
-    char* skuIdStrPtr
+    const char* skuIdStrPtr
 )
 {
-    le_utf8_Copy(Sku, skuIdStrPtr, LE_INFO_MAX_SKU_LEN, NULL);
+    le_utf8_Copy(Sku, skuIdStrPtr, LE_INFO_MAX_PSN_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -295,10 +324,10 @@ void pa_infoSimu_SetSku
 //--------------------------------------------------------------------------------------------------
 void pa_infoSimu_SetPlatformSerialNumber
 (
-    char* platformSerialNumberStrPtr
+    const char* platformSerialNumberStrPtr
 )
 {
-    le_utf8_Copy(Psn, platformSerialNumberStrPtr, LE_INFO_MAX_PSN_LEN, NULL);
+    le_utf8_Copy(Psn, platformSerialNumberStrPtr, LE_INFO_MAX_PSN_BYTES, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -325,6 +354,20 @@ void pa_infoSimu_SetRfDeviceStatus
         return;
     }
     LE_ERROR("Failed to set Rf Device Status for index = %d",index);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Init the PA.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_infoSimu_Init
+(
+    void
+)
+{
+    simuConfig_RegisterService(&ConfigService);
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------

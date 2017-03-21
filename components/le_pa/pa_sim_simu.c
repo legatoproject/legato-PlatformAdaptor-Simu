@@ -7,7 +7,6 @@
  */
 
 #include "legato.h"
-#include "pa_sim.h"
 #include "pa_sim_simu.h"
 
 #define PIN_REMAINING_ATTEMPS_DEFAULT   3

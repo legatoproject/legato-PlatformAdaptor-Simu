@@ -8,12 +8,18 @@
 
 #include "interfaces.h"
 #include "pa_simu.h"
+#include "simuConfig.h"
+
 #include "pa_sim_simu.h"
 #include "pa_mdc_simu.h"
 #include "pa_mcc_simu.h"
+#include "pa_mrc_simu.h"
 #include "pa_ips_simu.h"
+#include "pa_sms_simu.h"
+#include "pa_info_simu.h"
 #include "pa_temp.h"
 #include "pa_antenna.h"
+#include "pa_ecall_simu.h"
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -29,9 +35,6 @@ COMPONENT_INIT
 
     LE_INFO("PA Init");
 
-    /* Mark as active */
-    le_cfg_QuickSetBool(PA_SIMU_CFG_MODEM_ROOT "/active", true);
-
     /* Init sub-PAs */
     res = mrc_simu_Init();
     LE_FATAL_IF(res != LE_OK, "PA MRC Init Failed");
@@ -44,6 +47,9 @@ COMPONENT_INIT
 
     res = sms_simu_Init();
     LE_FATAL_IF(res != LE_OK, "PA SMS Init Failed");
+
+    res = pa_infoSimu_Init();
+    LE_FATAL_IF(res != LE_OK, "PA Info Init Failed");
 
     res = pa_mdcSimu_Init();
     LE_FATAL_IF(res != LE_OK, "PA MDC Init Failed");

@@ -7,8 +7,8 @@
  */
 
 #include "legato.h"
-#include "pa_ecall.h"
 #include "pa_simu.h"
+#include "pa_ecall_simu.h"
 
 #define MSD_BLOB_SIZE 140
 

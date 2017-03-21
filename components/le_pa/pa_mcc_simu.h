@@ -8,6 +8,7 @@
 #ifndef PA_MCC_SIMU_H_INCLUDE_GUARD
 #define PA_MCC_SIMU_H_INCLUDE_GUARD
 
+#include "pa_mcc.h"
 
 //--------------------------------------------------------------------------------------------------
 /**

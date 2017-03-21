@@ -22,13 +22,18 @@ cflags:
 {
     -I$LEGATO_ROOT/components/modemServices/platformAdaptor/inc
     -I$LEGATO_ROOT/components/modemServices/modemDaemon
+    -I$LEGATO_UTIL_PA
 }
 
 requires:
 {
+    component:
+    {
+        $LEGATO_UTIL_PA
+    }
+
     api:
     {
-        le_cfg.api
         le_sms.api      [types-only]
         le_mrc.api      [types-only]
         le_mdc.api      [types-only]

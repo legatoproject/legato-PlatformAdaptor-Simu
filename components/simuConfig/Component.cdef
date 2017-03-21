@@ -1,0 +1,12 @@
+sources:
+{
+    simuConfig.c
+}
+
+requires:
+{
+    api:
+    {
+        le_cfg.api
+    }
+}

@@ -8,6 +8,10 @@
 #ifndef LEGATO_PA_SMS_SIMU_INCLUDE_GUARD
 #define LEGATO_PA_SMS_SIMU_INCLUDE_GUARD
 
+#include "pa_sms.h"
+#include "pa_sms_simu.h"
+#include "pa_mrc_simu.h"
+
 typedef struct __attribute__((__packed__)) {
     uint8_t origAddress[LE_MDMDEFS_PHONE_NUM_MAX_LEN];
     uint8_t destAddress[LE_MDMDEFS_PHONE_NUM_MAX_LEN];
@@ -21,6 +25,8 @@ pa_sms_SimuPdu_t;
 #define SIMU_SMS_STORAGE_SIM    0
 #define SIMU_SMS_STORAGE_NV     1
 #define SIMU_SMS_STORAGE_ERROR  2
+
+#define PA_SIMU_SMS_DEFAULT_SMSC    ""
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -55,6 +61,11 @@ void pa_sms_SetSmsInStorage
 void pa_sms_SetSmsErrCause
 (
    int errorCode
+);
+
+le_result_t sms_simu_Init
+(
+    void
 );
 
 
