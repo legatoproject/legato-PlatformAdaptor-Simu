@@ -18,6 +18,13 @@
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Minimum APDU response length: 2 bytes for the SWI return code
+ */
+//--------------------------------------------------------------------------------------------------
+#define APDU_MIN 2
+
+//--------------------------------------------------------------------------------------------------
+/**
  * This event is reported when a SIM action request is received from the modem.
  */
 //--------------------------------------------------------------------------------------------------
@@ -70,7 +77,7 @@ le_event_HandlerRef_t pa_rsim_AddApduNotificationHandler
                                                 ///  notification reception.
 )
 {
-    le_event_HandlerRef_t apduIndHandler = NULL;
+    le_event_HandlerRef_t apduIndHandler;
     LE_ASSERT(NULL != indicationHandler);
 
     apduIndHandler = le_event_AddHandler("PaApduNotificationHandler",
@@ -106,7 +113,7 @@ le_event_HandlerRef_t pa_rsim_AddSimActionRequestHandler
                                                 ///  action request notification reception.
 )
 {
-    le_event_HandlerRef_t actionRequestHandler = NULL;
+    le_event_HandlerRef_t actionRequestHandler;
     LE_ASSERT(NULL != actionHandler);
 
     actionRequestHandler = le_event_AddLayeredHandler("PaSimActionRequestHandler",
@@ -188,8 +195,13 @@ le_result_t pa_rsim_TransferApduResp
     uint16_t       apduLen      ///< [IN] APDU length in bytes
 )
 {
-    LE_DEBUG("Received APDU:");
+    LE_DEBUG("Transfer APDU response (length %d):", apduLen);
     LE_DUMP(apduPtr, apduLen);
+
+    if (apduLen < APDU_MIN)
+    {
+        return LE_FAULT;
+    }
 
     return LE_OK;
 }
@@ -245,6 +257,22 @@ le_result_t pa_rsim_TransferAtrResp
  */
 //--------------------------------------------------------------------------------------------------
 bool pa_rsim_IsRsimSupported
+(
+    void
+)
+{
+    return true;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function checks if the remote SIM card is selected.
+ *
+ * @return true         If the remote SIM is selected.
+ * @return false        It the remote SIM is not selected.
+ */
+//--------------------------------------------------------------------------------------------------
+bool pa_rsim_IsRemoteSimSelected
 (
     void
 )

@@ -1,0 +1,10 @@
+sources:
+{
+    pa_rsim_simu.c
+    pa_rsim_simu_init.c
+}
+
+cflags:
+{
+    -I$LEGATO_ROOT/components/modemServices/platformAdaptor/inc
+}
