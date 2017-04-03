@@ -7,7 +7,6 @@ sources:
     pa_simu.c
     pa_sim_simu.c
     pa_sms_simu.c
-    pa_ecall_simu.c
     pa_ips_simu.c
     pa_temp_simu.c
     pa_antenna_simu.c
@@ -39,7 +38,6 @@ requires:
         le_mdc.api      [types-only]
         le_sim.api      [types-only]
         le_mcc.api      [types-only]
-        le_ecall.api    [types-only]
         le_info.api     [types-only]
         le_temp.api     [types-only]
         le_ips.api      [types-only]

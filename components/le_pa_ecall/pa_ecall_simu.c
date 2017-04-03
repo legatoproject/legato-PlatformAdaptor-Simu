@@ -7,7 +7,6 @@
  */
 
 #include "legato.h"
-#include "pa_simu.h"
 #include "pa_ecall_simu.h"
 
 #define MSD_BLOB_SIZE 140
@@ -25,7 +24,6 @@ static le_event_Id_t ECallEventId;
  */
 //--------------------------------------------------------------------------------------------------
 static char                 PsapNumber[LE_MDMDEFS_PHONE_NUM_MAX_LEN] = PA_SIMU_ECALL_DEFAULT_PSAP;
-static uint32_t             MaxRedialAttempts = PA_SIMU_ECALL_DEFAULT_MAX_REDIAL_ATTEMPTS;
 static le_ecall_MsdTxMode_t MsdTxMode = PA_SIMU_ECALL_DEFAULT_MSD_TX_MODE;
 static uint8_t              MsdData[MSD_BLOB_SIZE];
 static uint16_t             NadDeregistrationTime = 120;
@@ -155,40 +153,6 @@ le_result_t pa_ecall_GetPsapNumber
 )
 {
     return le_utf8_Copy(psapPtr, PsapNumber, len, NULL);
-}
-
-//--------------------------------------------------------------------------------------------------
-/**
- * This function must be called to set the maximum redial attempt when an ecall failed.
- *
- * @return LE_FAULT  The function failed.
- * @return LE_OK     The function succeed.
- */
-//--------------------------------------------------------------------------------------------------
-le_result_t pa_ecall_SetMaxRedialAttempts
-(
-    uint32_t redialAttemptsCount ///< [IN] Number of redial attempt
-)
-{
-    MaxRedialAttempts = redialAttemptsCount;
-    return LE_OK;
-}
-
-//--------------------------------------------------------------------------------------------------
-/**
- * This function must be called to get the maximum redial attempt when an ecall failed.
- *
- * @return LE_FAULT  The function failed.
- * @return LE_OK     The function succeed.
- */
-//--------------------------------------------------------------------------------------------------
-le_result_t pa_ecall_GetMaxRedialAttempts
-(
-    uint32_t* redialAttemptsCountPtr ///< [OUT] Number of redial attempt
-)
-{
-    *redialAttemptsCountPtr = MaxRedialAttempts;
-    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------

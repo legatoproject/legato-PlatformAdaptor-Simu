@@ -19,14 +19,11 @@
 #include "pa_info_simu.h"
 #include "pa_temp.h"
 #include "pa_antenna.h"
-#include "pa_ecall_simu.h"
 
 //--------------------------------------------------------------------------------------------------
 /**
  * Component initializer automatically called by the application framework when the process starts.
  *
- * This is not used because the PA component is shared by two different processes (the Modem Daemon
- * and the Positioning Daemon), and each needs different QMI services initialized.
  **/
 //--------------------------------------------------------------------------------------------------
 COMPONENT_INIT
@@ -53,9 +50,6 @@ COMPONENT_INIT
 
     res = pa_mdcSimu_Init();
     LE_FATAL_IF(res != LE_OK, "PA MDC Init Failed");
-
-    res = ecall_simu_Init();
-    LE_FATAL_IF(res != LE_OK, "PA eCall Init Failed");
 
     res = pa_temp_Init();
     LE_FATAL_IF(res != LE_OK, "PA Temperature Failed");

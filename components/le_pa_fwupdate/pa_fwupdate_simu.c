@@ -344,7 +344,7 @@ le_result_t pa_fwupdate_GetResumePosition
  *      - NULL if the given status is invalid.
  */
 //--------------------------------------------------------------------------------------------------
-const char *pa_fwupdate_GetUpdateStatusLabel
+static const char *GetUpdateStatusLabel
 (
     pa_fwupdate_UpdateStatus_t status    ///< [IN] Firmware update status
 )
@@ -398,7 +398,7 @@ le_result_t pa_fwupdate_GetUpdateStatus
         {
             // Update the status label
             strncpy(statusLabelPtr,
-                pa_fwupdate_GetUpdateStatusLabel(*statusPtr),
+                GetUpdateStatusLabel(*statusPtr),
                 statusLabelLength);
         }
         else
@@ -557,23 +557,6 @@ le_result_t pa_fwupdate_GetSystemState
 )
 {
     *isSync = IsSyncLocal;
-    return ReturnCode;
-}
-
-//--------------------------------------------------------------------------------------------------
-/**
- * Update some variables in SSDATA to indicate that systems are not synchronized
- *
- * @return
- *      - LE_OK on success
- *      - LE_FAULT on failure
- */
-//--------------------------------------------------------------------------------------------------
-le_result_t pa_fwupdate_DualSysSetUnsyncState
-(
-    void
-)
-{
     return ReturnCode;
 }
 

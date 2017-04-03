@@ -1,0 +1,24 @@
+sources:
+{
+    pa_ecall_simu.c
+    componentInit.c
+}
+
+cflags:
+{
+    -I$LEGATO_ROOT/components/modemServices/platformAdaptor/inc
+    -I$LEGATO_UTIL_PA
+}
+
+requires:
+{
+    component:
+    {
+        $LEGATO_UTIL_PA
+    }
+
+    api:
+    {
+        le_ecall.api    [types-only]
+    }
+}
