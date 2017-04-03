@@ -908,6 +908,37 @@ le_result_t pa_mdc_GetDNSAddresses
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Provide a default data profile for 3GPP.
+ *
+ **/
+//--------------------------------------------------------------------------------------------------
+static void ProvideDefaultProfile
+(
+    void
+)
+{
+    pa_mdc_ProfileData_t profileData;
+    int profileIndex = PA_MDC_MIN_INDEX_3GPP_PROFILE;
+    memset(&profileData, 0, sizeof(pa_mdc_ProfileData_t));
+    le_utf8_Copy(profileData.apn, "apn", sizeof(profileData.apn), NULL);
+    profileData.authentication.type = LE_MDC_AUTH_NONE;
+    profileData.pdp = LE_MDC_PDP_IPV4;
+    pa_mdcSimu_SetProfile(profileIndex, &profileData);
+    pa_mdcSimu_SetInterfaceName(profileIndex, "eth0");
+
+    // This case is only valid for OPT_NET="user" in legato-qemu
+    // TODO: Detect IP automatically or use OPT_NET2 to have a dedicated network
+    char ipAddrStrIpv4[] = "192.168.76.15";
+    char gatewayAddrStrIpv4[] = "192.168.76.2";
+    char dns1AddrIpv4[] = "192.168.76.3";
+    char dns2AddrIpv4[] = "";
+    pa_mdcSimu_SetIPAddress(profileIndex, LE_MDMDEFS_IPV4, ipAddrStrIpv4);
+    pa_mdcSimu_SetGatewayAddress(profileIndex, LE_MDMDEFS_IPV4, gatewayAddrStrIpv4);
+    pa_mdcSimu_SetDNSAddresses(profileIndex, LE_MDMDEFS_IPV4, dns1AddrIpv4, dns2AddrIpv4);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * simu init
  *
  **/
@@ -918,6 +949,8 @@ le_result_t pa_mdcSimu_Init
 )
 {
     NewSessionStatePool = le_mem_CreatePool("NewSessionStatePool", sizeof(pa_mdc_SessionStateData_t));
+
+    ProvideDefaultProfile();
 
     return LE_OK;
 }
