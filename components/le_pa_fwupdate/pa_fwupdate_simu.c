@@ -449,14 +449,15 @@ le_result_t pa_fwupdate_GetBootloaderVersion
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Program a swap between active and update systems
+ * Install the firmware package. On dual system this api performs a swap between active and update
+ * systems.
  *
  * @return
  *      - LE_OK on success
  *      - LE_FAULT on failure
  */
 //--------------------------------------------------------------------------------------------------
-le_result_t pa_fwupdate_DualSysSwap
+le_result_t pa_fwupdate_Install
 (
     bool isSyncReq      ///< [IN] Indicate if a synchronization is requested after the swap
 )
@@ -465,7 +466,7 @@ le_result_t pa_fwupdate_DualSysSwap
     {
         if (isSyncReq)
         {
-            pa_fwupdate_DualSysSync();
+            pa_fwupdate_MarkGood();
         }
         pa_fwupdate_Reset();
         pa_fwupdate_NvupApply();
@@ -475,14 +476,14 @@ le_result_t pa_fwupdate_DualSysSwap
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Program a synchronization between active and update systems
+ * Mark the system as good.
  *
  * @return
  *      - LE_OK on success
  *      - LE_FAULT on failure
  */
 //--------------------------------------------------------------------------------------------------
-le_result_t pa_fwupdate_DualSysSync
+le_result_t pa_fwupdate_MarkGood
 (
     void
 )
@@ -509,7 +510,7 @@ le_result_t pa_fwupdate_DualSysSync
  *      - LE_FAULT on failure
  */
 //--------------------------------------------------------------------------------------------------
-le_result_t pa_fwupdate_DualSysGetSyncState
+le_result_t pa_fwupdate_GetSystemState
 (
     bool *isSync
 )
