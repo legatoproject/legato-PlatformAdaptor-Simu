@@ -10,41 +10,77 @@
 
 #include "pa_sim.h"
 
-#define PA_SIMU_SIM_DEFAULT_MCC     "01"
-#define PA_SIMU_SIM_DEFAULT_MNC     "001"
+//--------------------------------------------------------------------------------------------------
+/**
+ * Provide default values used by the simulation engine.
+ */
+//--------------------------------------------------------------------------------------------------
+#define PA_SIMU_SIM_DEFAULT_MCC                     "001"
+#define PA_SIMU_SIM_DEFAULT_MNC                     "01"
+#define PA_SIMU_SIM_DEFAULT_PIN_REMAINING_ATTEMPTS  3
+#define PA_SIMU_SIM_DEFAULT_PUK_REMAINING_ATTEMPTS  3
+#define PA_SIMU_SIM_DEFAULT_IMSI                    "001012345678910"
+#define PA_SIMU_SIM_DEFAULT_ICCID                   "12345678901234567890"
+#define PA_SIMU_SIM_DEFAULT_PHONE_NUMBER            "+15032541000"
+#define PA_SIMU_SIM_DEFAULT_HOME_NETWORK            "test"
+#define PA_SIMU_SIM_DEFAULT_PIN                     "0000"
+#define PA_SIMU_SIM_DEFAULT_PUK                     "12345678"
 
 //--------------------------------------------------------------------------------------------------
 /**
  * This function must be called to set the Home Network MCC MNC.
  *
+ * If a parameter exceeds the allowed size the application will exit.
  */
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetHomeNetworkMccMnc
 (
-    const char *mccPtr,
-    const char *mncPtr
+    const char *mccPtr, ///< [IN] MCC (max length LE_MRC_MCC_BYTES)
+    const char *mncPtr  ///< [IN] MNC (max length LE_MRC_MNC_BYTES)
 );
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Report the Sim state
+ * This function must be called to set the Home Network MCC.
  *
+ * If a parameter exceeds the allowed size the application will exit.
  */
 //--------------------------------------------------------------------------------------------------
-void pa_simSimu_ReportSimState
+void pa_simSimu_SetHomeNetworkMcc
+(
+    const char *mccPtr  ///< [IN] MCC (max length LE_MRC_MCC_BYTES)
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to set the Home Network MNC.
+ *
+ * If a parameter exceeds the allowed size the application will exit.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_SetHomeNetworkMnc
+(
+    const char *mncPtr  ///< [IN] MNC (max length LE_MRC_MNC_BYTES)
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Report the SIM state.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_ReportSIMState
 (
     le_sim_States_t state
 );
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Select the Sim
- *
+ * Select the SIM card currently in use.
  */
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetSelectCard
 (
-    le_sim_Id_t simId
+    le_sim_Id_t simId     ///< [IN] The SIM currently selected
 );
 
 //--------------------------------------------------------------------------------------------------
@@ -62,41 +98,36 @@ le_result_t pa_simSimu_Init
 //--------------------------------------------------------------------------------------------------
 /**
  * This function set the International Mobile Subscriber Identity (IMSI).
- *
  */
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetIMSI
 (
-    pa_sim_Imsi_t imsi   ///< [OUT] IMSI value
+    pa_sim_Imsi_t imsi   ///< [IN] IMSI value
 );
 
 //--------------------------------------------------------------------------------------------------
 /**
  * This function set the card identification (ICCID).
- *
- *
  */
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetCardIdentification
 (
-    pa_sim_CardId_t iccid
+    const pa_sim_CardId_t iccid     ///< [IN] ICCID value
 );
 
 //--------------------------------------------------------------------------------------------------
 /**
  * This function set the International Mobile Subscriber Identity (IMSI).
- *
  */
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetIMSI
 (
-    pa_sim_Imsi_t imsi   ///< [OUT] IMSI value
+    pa_sim_Imsi_t imsi   ///< [IN] IMSI value
 );
 
 //--------------------------------------------------------------------------------------------------
 /**
  * Set the SIM Phone Number.
- *
  */
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetSubscriberPhoneNumber
@@ -116,33 +147,40 @@ void pa_simSimu_SetHomeNetworkOperator
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Set the Pin code
- *
+ * Set the PIN code.
  */
 //--------------------------------------------------------------------------------------------------
-void pa_simSimu_SetPin
+void pa_simSimu_SetPIN
 (
     const char* pin
 );
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Set the Puk code
- *
+ * Enable/disable the PIN code usage.
  */
 //--------------------------------------------------------------------------------------------------
-void pa_simSimu_SetPuk
+void pa_simSimu_SetPINSecurity
+(
+    bool enable ///< [IN] Should the PIN code be used or not.
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the PUK code.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_SetPUK
 (
     const char* puk
 );
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Report the Stk event
- *
+ * Report a SIM toolkit event.
  */
 //--------------------------------------------------------------------------------------------------
-void pa_simSimu_ReportStkEvent
+void pa_simSimu_ReportSTKEvent
 (
     le_sim_StkEvent_t  stkEvent
 );
@@ -150,21 +188,19 @@ void pa_simSimu_ReportStkEvent
 //--------------------------------------------------------------------------------------------------
 /**
  * This function must be called to set the expected confirmation command.
- *
  */
 //--------------------------------------------------------------------------------------------------
-void pa_simSimu_SetExpectedStkConfirmationCommand
+void pa_simSimu_SetExpectedSTKConfirmationCommand
 (
-    bool  confirmation ///< [IN] true to accept, false to reject
+    bool  confirmation ///< [IN] True to accept, false to reject
 );
 
 //--------------------------------------------------------------------------------------------------
 /**
  * Set SimAccessTest variable
- *
  */
 //--------------------------------------------------------------------------------------------------
-void pa_simSimu_SetSimAccessTest
+void pa_simSimu_SetSIMAccessTest
 (
     bool testInProgress
 );

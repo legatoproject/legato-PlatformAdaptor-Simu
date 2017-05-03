@@ -125,7 +125,8 @@ LE_SHARED void simuConfig_RegisterService
  * If WITHOUT_SIMUCONFIG is defined, provide an empty function as we should not do anything.
  */
 //--------------------------------------------------------------------------------------------------
-#define simuConfig_RegisterService(X) do {} while(0)
+#define simuConfig_RegisterService(X) \
+    (void)(X)
 
 #endif
 

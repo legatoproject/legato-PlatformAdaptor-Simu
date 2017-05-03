@@ -7,24 +7,29 @@
  */
 
 #include "legato.h"
+#include "pa_simu.h"
 #include "pa_sim_simu.h"
+#include "simuConfig.h"
 
-#define PIN_REMAINING_ATTEMPS_DEFAULT   3
-#define PUK_REMAINING_ATTEMPS_DEFAULT   3
-
-static uint32_t PinRemainingAttempts = PIN_REMAINING_ATTEMPS_DEFAULT;
-static uint32_t PukRemainingAttempts = PUK_REMAINING_ATTEMPS_DEFAULT;
+//--------------------------------------------------------------------------------------------------
+/**
+ * Declaration of variables used by the simulation engine.
+ */
+//--------------------------------------------------------------------------------------------------
+static uint32_t PinRemainingAttempts = PA_SIMU_SIM_DEFAULT_PIN_REMAINING_ATTEMPTS;
+static uint32_t PukRemainingAttempts = PA_SIMU_SIM_DEFAULT_PUK_REMAINING_ATTEMPTS;
 static le_sim_Id_t SelectedCard = 1;
 static le_sim_States_t SimState = LE_SIM_READY;
-static char HomeMcc[LE_MRC_MCC_BYTES]="";
-static char HomeMnc[LE_MRC_MNC_BYTES]="";
-static pa_sim_Imsi_t Imsi = "";
-static pa_sim_CardId_t Iccid = "";
-static char PhoneNumber[LE_MDMDEFS_PHONE_NUM_MAX_BYTES] = "";
-static char* HomeNetworkOperator = NULL;
-static char Pin[PA_SIM_PIN_MAX_LEN+1]="";
-static char Puk[PA_SIM_PUK_MAX_LEN+1]="";
-static bool StkConfirmation = false;
+static char HomeMcc[LE_MRC_MCC_BYTES] = PA_SIMU_SIM_DEFAULT_MCC;
+static char HomeMnc[LE_MRC_MNC_BYTES] = PA_SIMU_SIM_DEFAULT_MNC;
+static pa_sim_Imsi_t Imsi = PA_SIMU_SIM_DEFAULT_IMSI;
+static pa_sim_CardId_t Iccid = PA_SIMU_SIM_DEFAULT_ICCID;
+static char PhoneNumber[LE_MDMDEFS_PHONE_NUM_MAX_BYTES] = PA_SIMU_SIM_DEFAULT_PHONE_NUMBER;
+static char* HomeNetworkOperator = PA_SIMU_SIM_DEFAULT_HOME_NETWORK;
+static char Pin[PA_SIM_PIN_MAX_LEN+1] = PA_SIMU_SIM_DEFAULT_PIN;
+static bool IsPinSecurityEnabled = true;
+static char Puk[PA_SIM_PUK_MAX_LEN+1] = PA_SIMU_SIM_DEFAULT_PUK;
+static bool STKConfirmation = false;
 static le_event_Id_t SimToolkitEvent;
 static pa_sim_NewStateHdlrFunc_t SimStateHandler;
 static le_mem_PoolRef_t SimStateEventPool;
@@ -32,11 +37,80 @@ static bool SimAccessTest = false;
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Set the Puk code
- *
+ * Set the SIM state using a string as a parameter.
  */
 //--------------------------------------------------------------------------------------------------
-void pa_simSimu_SetPuk
+static void SetStateFromString
+(
+    const char* stateStr    ///< [IN] SIM state as a string
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function sets the International Mobile Subscriber Identity (IMSI) from a string.
+ */
+//--------------------------------------------------------------------------------------------------
+static void SetIMSIFromString
+(
+    const char* imsiStr     ///< [IN] IMSI value
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Definition of settings that are settable through simuConfig.
+ */
+//--------------------------------------------------------------------------------------------------
+static const simuConfig_Property_t ConfigProperties[] = {
+    { .name = "state",
+      .setter = { .type = SIMUCONFIG_HANDLER_STRING,
+                  .handler = { .stringFn = SetStateFromString } } },
+    { .name = "mcc",
+      .setter = { .type = SIMUCONFIG_HANDLER_STRING,
+                  .handler = { .stringFn = pa_simSimu_SetHomeNetworkMcc } } },
+    { .name = "mnc",
+      .setter = { .type = SIMUCONFIG_HANDLER_STRING,
+                  .handler = { .stringFn = pa_simSimu_SetHomeNetworkMnc } } },
+    { .name = "imsi",
+      .setter = { .type = SIMUCONFIG_HANDLER_STRING,
+                  .handler = { .stringFn = SetIMSIFromString } } },
+    { .name = "iccid",
+      .setter = { .type = SIMUCONFIG_HANDLER_STRING,
+                  .handler = { .stringFn = pa_simSimu_SetCardIdentification } } },
+    { .name = "phoneNumber",
+      .setter = { .type = SIMUCONFIG_HANDLER_STRING,
+                  .handler = { .stringFn = pa_simSimu_SetSubscriberPhoneNumber } } },
+    { .name = "operator",
+      .setter = { .type = SIMUCONFIG_HANDLER_STRING,
+                  .handler = { .stringFn = pa_simSimu_SetHomeNetworkOperator } } },
+    { .name = "pin",
+      .setter = { .type = SIMUCONFIG_HANDLER_STRING,
+                  .handler = { .stringFn = pa_simSimu_SetPIN } } },
+    { .name = "pinSecurity",
+      .setter = { .type = SIMUCONFIG_HANDLER_BOOL,
+                  .handler = { .boolFn = pa_simSimu_SetPINSecurity } } },
+    { .name = "puk",
+      .setter = { .type = SIMUCONFIG_HANDLER_STRING,
+                  .handler = { .stringFn = pa_simSimu_SetPUK } } },
+    {0}
+};
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Services available for configuration.
+ */
+//--------------------------------------------------------------------------------------------------
+static const simuConfig_Service_t ConfigService = {
+    "sim",
+    PA_SIMU_CFG_MODEM_ROOT "/sim",
+    ConfigProperties
+};
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the PUK code.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_SetPUK
 (
     const char* puk
 )
@@ -46,11 +120,10 @@ void pa_simSimu_SetPuk
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Set the Pin code
- *
+ * Set the PIN code.
  */
 //--------------------------------------------------------------------------------------------------
-void pa_simSimu_SetPin
+void pa_simSimu_SetPIN
 (
     const char* pin
 )
@@ -60,13 +133,25 @@ void pa_simSimu_SetPin
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Select the Sim
- *
+ * Enable/disable the PIN code.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_SetPINSecurity
+(
+    bool enable ///< [IN] Should the PIN code be used or not.
+)
+{
+    IsPinSecurityEnabled = enable;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Select the SIM card currently in use.
  */
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetSelectCard
 (
-    le_sim_Id_t simId
+    le_sim_Id_t simId     ///< [IN] The SIM currently selected
 )
 {
     SelectedCard = simId;
@@ -83,7 +168,7 @@ void pa_simSimu_SetSelectCard
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_SelectCard
 (
-    le_sim_Id_t  sim     ///< The SIM to be selected
+    le_sim_Id_t  sim     ///< [IN] The SIM to be selected
 )
 {
     LE_ASSERT(sim == SelectedCard);
@@ -93,7 +178,7 @@ le_result_t pa_sim_SelectCard
 
 //--------------------------------------------------------------------------------------------------
 /**
- * This function get the card on which operations are operated.
+ * This function gets the card on which operations are operated.
  *
  * @return LE_FAULT         The function failed.
  * @return LE_OK            The function succeeded.
@@ -110,22 +195,23 @@ le_result_t pa_sim_GetSelectedCard
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Report the Sim state
- *
+ * Report the SIM state.
  */
 //--------------------------------------------------------------------------------------------------
-void pa_simSimu_ReportSimState
+void pa_simSimu_ReportSIMState
 (
     le_sim_States_t state
 )
 {
     SimState = state;
 
+    LE_DEBUG("Report SIM state %d", state);
+
     if (SimStateHandler)
     {
         pa_sim_Event_t* eventPtr = le_mem_ForceAlloc(SimStateEventPool);
-        eventPtr->simId   = SelectedCard;
-        eventPtr->state     = SimState;
+        eventPtr->simId = SelectedCard;
+        eventPtr->state = SimState;
 
         SimStateHandler(eventPtr);
     }
@@ -133,32 +219,77 @@ void pa_simSimu_ReportSimState
 
 //--------------------------------------------------------------------------------------------------
 /**
- * Report the Stk event
+ * Set the SIM state using a string as a parameter.
  *
+ * Valid SIM states values are:
+ * - INSERTED
+ * - ABSENT
+ * - READY
+ * - BLOCKED
+ * - BUSY
  */
 //--------------------------------------------------------------------------------------------------
-void pa_simSimu_ReportStkEvent
+static void SetStateFromString
 (
-    le_sim_StkEvent_t  leStkEvent
+    const char* stateStr    ///< [IN] SIM state as a string
 )
 {
-    pa_sim_StkEvent_t  stkEvent;
-    stkEvent.simId = SelectedCard;
-    stkEvent.stkEvent = leStkEvent;
+    le_sim_States_t state;
 
-    le_event_Report(SimToolkitEvent, &stkEvent, sizeof(stkEvent));
+    if (0 == strcmp(stateStr, "INSERTED"))
+    {
+        state = LE_SIM_INSERTED;
+    }
+    else if (0 == strcmp(stateStr, "ABSENT"))
+    {
+        state = LE_SIM_ABSENT;
+    }
+    else if (0 == strcmp(stateStr, "READY"))
+    {
+        state = LE_SIM_READY;
+    }
+    else if (0 == strcmp(stateStr, "BLOCKED"))
+    {
+        state = LE_SIM_BLOCKED;
+    }
+    else if (0 == strcmp(stateStr, "BUSY"))
+    {
+        state = LE_SIM_BUSY;
+    }
+    else
+    {
+        LE_ERROR("Unknown SIM state '%s'", stateStr);
+        return;
+    }
+
+    pa_simSimu_ReportSIMState(state);
 }
 
 //--------------------------------------------------------------------------------------------------
 /**
- * This function set the card identification (ICCID).
- *
- *
+ * Report the STK event.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_ReportSTKEvent
+(
+    le_sim_StkEvent_t  leSTKEvent
+)
+{
+    pa_sim_StkEvent_t  paSTKEvent;
+    paSTKEvent.simId = SelectedCard;
+    paSTKEvent.stkEvent = leSTKEvent;
+
+    le_event_Report(SimToolkitEvent, &paSTKEvent, sizeof(paSTKEvent));
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function sets the card identification (ICCID).
  */
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetCardIdentification
 (
-    pa_sim_CardId_t iccid
+    const pa_sim_CardId_t iccid     ///< [IN] ICCID value
 )
 {
     le_utf8_Copy(Iccid, iccid, sizeof(pa_sim_CardId_t), NULL);
@@ -166,8 +297,7 @@ void pa_simSimu_SetCardIdentification
 
 //--------------------------------------------------------------------------------------------------
 /**
- * This function get the card identification (ICCID).
- *
+ * This function gets the card identification (ICCID).
  *
  * @return
  *      \return LE_NOT_POSSIBLE  The function failed to get the value.
@@ -198,7 +328,7 @@ le_result_t pa_sim_GetCardIdentification
 
 //--------------------------------------------------------------------------------------------------
 /**
- * This function set the International Mobile Subscriber Identity (IMSI).
+ * This function sets the International Mobile Subscriber Identity (IMSI).
  *
  */
 //--------------------------------------------------------------------------------------------------
@@ -212,8 +342,20 @@ void pa_simSimu_SetIMSI
 
 //--------------------------------------------------------------------------------------------------
 /**
- * This function get the International Mobile Subscriber Identity (IMSI).
- *
+ * This function sets the International Mobile Subscriber Identity (IMSI) from a string.
+ */
+//--------------------------------------------------------------------------------------------------
+static void SetIMSIFromString
+(
+    const char* imsiStr   ///< [IN] IMSI value
+)
+{
+    le_utf8_Copy(Imsi, imsiStr, sizeof(pa_sim_Imsi_t), NULL);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function gets the International Mobile Subscriber Identity (IMSI).
  *
  * @return
  *      \return LE_NOT_POSSIBLE  The function failed to get the value.
@@ -242,7 +384,7 @@ le_result_t pa_sim_GetIMSI
 
 //--------------------------------------------------------------------------------------------------
 /**
- * This function get the SIM Status.
+ * This function gets the SIM Status.
  *
  *
  * @return
@@ -332,25 +474,25 @@ le_result_t pa_sim_EnterPIN
         if (PinRemainingAttempts == 1)
         {
             /* Blocked */
-            pa_simSimu_ReportSimState(LE_SIM_BLOCKED);
+            LE_INFO("SIM Blocked");
+            pa_simSimu_ReportSIMState(LE_SIM_BLOCKED);
         }
 
         PinRemainingAttempts--;
 
         return LE_BAD_PARAMETER;
     }
-    else
-    {
-        PinRemainingAttempts = PIN_REMAINING_ATTEMPS_DEFAULT;
-        pa_simSimu_ReportSimState(LE_SIM_READY);
-    }
+
+    LE_INFO("PIN OK");
+    PinRemainingAttempts = PA_SIMU_SIM_DEFAULT_PIN_REMAINING_ATTEMPTS;
+    pa_simSimu_ReportSIMState(LE_SIM_READY);
 
     return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
 /**
- * This function set the new PIN code.
+ * This function sets the new PIN code.
  *
  *  - use to set pin code by providing the PUK
  *
@@ -366,7 +508,7 @@ le_result_t pa_sim_EnterPIN
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_EnterPUK
 (
-    pa_sim_PukType_t   type, ///< [IN] puk type
+    pa_sim_PukType_t   type, ///< [IN] PUK type
     const pa_sim_Puk_t puk,  ///< [IN] PUK code
     const pa_sim_Pin_t pin   ///< [IN] new PIN code
 )
@@ -385,25 +527,28 @@ le_result_t pa_sim_EnterPUK
         if (PukRemainingAttempts <= 1)
         {
             /* TODO */
-            PukRemainingAttempts = PUK_REMAINING_ATTEMPS_DEFAULT;
+            PukRemainingAttempts = PA_SIMU_SIM_DEFAULT_PUK_REMAINING_ATTEMPTS;
         }
         else
         {
             PukRemainingAttempts--;
         }
 
+        LE_INFO("PUK not OK");
         return LE_BAD_PARAMETER;
     }
 
-    PinRemainingAttempts = PUK_REMAINING_ATTEMPS_DEFAULT;
-    pa_simSimu_ReportSimState(LE_SIM_READY);
+    LE_INFO("PUK OK");
+    PukRemainingAttempts = PA_SIMU_SIM_DEFAULT_PUK_REMAINING_ATTEMPTS;
+    PinRemainingAttempts = PA_SIMU_SIM_DEFAULT_PIN_REMAINING_ATTEMPTS;
+    pa_simSimu_ReportSIMState(LE_SIM_READY);
 
     return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
 /**
- * This function get the remaining attempts of a pin code.
+ * This function gets the remaining attempts of a pin code.
  *
  *
  * @return
@@ -416,7 +561,7 @@ le_result_t pa_sim_EnterPUK
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_GetPINRemainingAttempts
 (
-    pa_sim_PinType_t type,       ///< [IN] The pin type
+    pa_sim_PinType_t type,       ///< [IN] The PIN type
     uint32_t*        attemptsPtr ///< [OUT] The number of attempts still possible
 )
 {
@@ -435,7 +580,7 @@ le_result_t pa_sim_GetPINRemainingAttempts
 
 //--------------------------------------------------------------------------------------------------
 /**
- * This function get the remaining attempts of a puk code.
+ * This function gets the remaining attempts of a puk code.
  *
  *
  * @return
@@ -532,6 +677,8 @@ le_result_t pa_sim_EnablePIN
         return LE_NOT_POSSIBLE;
     }
 
+    pa_simSimu_SetPINSecurity(true);
+
     return LE_OK;
 }
 
@@ -566,11 +713,12 @@ le_result_t pa_sim_DisablePIN
             return LE_NOT_POSSIBLE;
     }
 
-
     if (strncmp(code,Pin,strlen(Pin)) != 0)
     {
         return LE_NOT_POSSIBLE;
     }
+
+    pa_simSimu_SetPINSecurity(false);
 
     return LE_OK;
 }
@@ -679,17 +827,48 @@ le_result_t pa_sim_GetHomeNetworkOperator
 /**
  * This function must be called to set the Home Network MCC MNC.
  *
+ * If a parameter exceeds the allowed size the application will exit.
  */
 //--------------------------------------------------------------------------------------------------
 void pa_simSimu_SetHomeNetworkMccMnc
 (
-    const char *mccPtr,
-    const char *mncPtr
+    const char *mccPtr, ///< [IN] MCC (max length LE_MRC_MCC_BYTES)
+    const char *mncPtr  ///< [IN] MNC (max length LE_MRC_MNC_BYTES)
 )
 {
-    LE_ASSERT((strlen(mccPtr) <= LE_MRC_MCC_BYTES) && (strlen(mncPtr) <= LE_MRC_MNC_BYTES));
+    pa_simSimu_SetHomeNetworkMcc(mccPtr);
+    pa_simSimu_SetHomeNetworkMnc(mncPtr);
+}
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to set the Home Network MCC.
+ *
+ * If a parameter exceeds the allowed size the application will exit.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_SetHomeNetworkMcc
+(
+    const char *mccPtr  ///< [IN] MCC (max length LE_MRC_MCC_BYTES)
+)
+{
+    LE_ASSERT(strlen(mccPtr) <= LE_MRC_MCC_BYTES);
     le_utf8_Copy(HomeMcc, mccPtr, LE_MRC_MCC_BYTES, NULL);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to set the Home Network MNC.
+ *
+ * If a parameter exceeds the allowed size the application will exit.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_SetHomeNetworkMnc
+(
+    const char *mncPtr  ///< [IN] MNC (max length LE_MRC_MNC_BYTES)
+)
+{
+    LE_ASSERT(strlen(mncPtr) <= LE_MRC_MNC_BYTES);
     le_utf8_Copy(HomeMnc, mncPtr, LE_MRC_MNC_BYTES, NULL);
 }
 
@@ -776,7 +955,7 @@ le_result_t pa_sim_CloseLogicalChannel
  *
  */
 //--------------------------------------------------------------------------------------------------
-void pa_simSimu_SetSimAccessTest
+void pa_simSimu_SetSIMAccessTest
 (
     bool testInProgress
 )
@@ -881,12 +1060,12 @@ le_result_t pa_sim_RemoveSimToolkitEventHandler
  *
  */
 //--------------------------------------------------------------------------------------------------
-void pa_simSimu_SetExpectedStkConfirmationCommand
+void pa_simSimu_SetExpectedSTKConfirmationCommand
 (
     bool  confirmation ///< [IN] true to accept, false to reject
 )
 {
-    StkConfirmation = confirmation;
+    STKConfirmation = confirmation;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -903,7 +1082,7 @@ le_result_t pa_sim_ConfirmSimToolkitCommand
     bool  confirmation ///< [IN] true to accept, false to reject
 )
 {
-    LE_ASSERT(StkConfirmation == confirmation);
+    LE_ASSERT(STKConfirmation == confirmation);
 
     return LE_OK;
 }
@@ -924,6 +1103,8 @@ le_result_t pa_simSimu_Init
 
     SimStateEventPool = le_mem_CreatePool("SimEventPool", sizeof(pa_sim_Event_t));
     SimToolkitEvent = le_event_CreateId("SimToolkitEvent", sizeof(pa_sim_StkEvent_t));
+
+    simuConfig_RegisterService(&ConfigService);
 
     return LE_OK;
 }

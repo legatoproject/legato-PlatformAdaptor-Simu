@@ -65,7 +65,7 @@ static bool        ApplySimuErrorCode;
  * Definition of settings that are settable through simuConfig.
  */
 //--------------------------------------------------------------------------------------------------
-const simuConfig_Property_t ConfigProperties[] = {
+static const simuConfig_Property_t ConfigProperties[] = {
     { .name = "psn",
       .setter = { .type = SIMUCONFIG_HANDLER_STRING,
                   .handler = { .stringFn = pa_infoSimu_SetPlatformSerialNumber } } },
@@ -83,7 +83,7 @@ const simuConfig_Property_t ConfigProperties[] = {
  * Services available for configuration.
  */
 //--------------------------------------------------------------------------------------------------
-const simuConfig_Service_t ConfigService = {
+static const simuConfig_Service_t ConfigService = {
     "info",
     PA_SIMU_CFG_MODEM_ROOT "/info",
     ConfigProperties
