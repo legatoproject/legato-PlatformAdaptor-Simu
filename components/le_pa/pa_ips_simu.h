@@ -23,6 +23,26 @@ void pa_ipsSimu_SetInputVoltage
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * This function sets the Platform power source.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_ipsSimu_SetPowerSource
+(
+    le_ips_PowerSource_t powerSource    ///< [IN] The power source.
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function sets the Platform battery level in percent.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_ipsSimu_SetBatteryLevel
+(
+    uint8_t batteryLevel    ///< [IN] The battery level in percent.
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
  * This function must be called to initialize the PA Input Power Supply module.
  *
  * @return

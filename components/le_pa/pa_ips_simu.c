@@ -45,6 +45,21 @@ static uint32_t NormalVoltThershold = DEFAULT_IPS_NORMAL_THRESHOLD;
 static uint32_t WarningVoltThreshold = DEFAULT_ISP_WARNING_THRESHOLD;
 static uint32_t CriticalVoltThreshold = DEFAULT_IPS_CRITICAL_THRESHOLD;
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * The internal power source.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_ips_PowerSource_t PowerSource = LE_IPS_POWER_SOURCE_EXTERNAL;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * The internal battery level.
+ */
+//--------------------------------------------------------------------------------------------------
+static uint8_t BatteryLevel = 0;
+
+
 
 //--------------------------------------------------------------------------------------------------
 //                                       Public declarations
@@ -191,7 +206,81 @@ le_result_t pa_GetVoltageThresholds
     return LE_OK;
 }
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function sets the Platform power source.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_ipsSimu_SetPowerSource
+(
+    le_ips_PowerSource_t powerSource    ///< [IN] The power source.
+)
+{
+    PowerSource = powerSource;
+}
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the Platform power source.
+ *
+ * @return
+ *      - LE_OK             The function succeeded.
+ *      - LE_BAD_PARAMETER  Null pointer provided as a parameter.
+ *      - LE_FAULT          The function failed to get the value.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_ips_GetPowerSource
+(
+    le_ips_PowerSource_t* powerSourcePtr    ///< [OUT] The power source.
+)
+{
+    if (!powerSourcePtr)
+    {
+        LE_ERROR("powerSourcePtr is NULL!");
+        return LE_BAD_PARAMETER;
+    }
+
+    *powerSourcePtr = PowerSource;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function sets the Platform battery level in percent.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_ipsSimu_SetBatteryLevel
+(
+    uint8_t batteryLevel    ///< [IN] The battery level in percent.
+)
+{
+    BatteryLevel = batteryLevel;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the Platform battery level in percent.
+ *
+ * @return
+ *      - LE_OK             The function succeeded.
+ *      - LE_BAD_PARAMETER  Null pointer provided as a parameter.
+ *      - LE_FAULT          The function failed to get the value.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_ips_GetBatteryLevel
+(
+    uint8_t* batteryLevelPtr    ///< [OUT] The battery level in percent.
+)
+{
+    if (!batteryLevelPtr)
+    {
+        LE_ERROR("batteryLevelPtr is NULL!");
+        return LE_BAD_PARAMETER;
+    }
+
+    *batteryLevelPtr = BatteryLevel;
+    return LE_OK;
+}
 
 //--------------------------------------------------------------------------------------------------
 /**
