@@ -766,9 +766,7 @@ le_result_t pa_sim_GetSubscriberPhoneNumber
         return LE_OVERFLOW;
     }
 
-    le_utf8_Copy(phoneNumberStr, PhoneNumber, phoneNumberStrSize, NULL);
-
-    return LE_OK;
+    return le_utf8_Copy(phoneNumberStr, PhoneNumber, phoneNumberStrSize, NULL);
 }
 
 //--------------------------------------------------------------------------------------------------

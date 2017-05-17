@@ -780,9 +780,9 @@ static le_result_t SmsServerHandleLocalMessage
     {
         pa_sms_Message_t decodedMessage;
         le_result_t res;
-        char localNumber[LE_MDMDEFS_PHONE_NUM_MAX_LEN];
+        char localNumber[LE_MDMDEFS_PHONE_NUM_MAX_BYTES];
 
-        res = pa_sim_GetSubscriberPhoneNumber(localNumber, LE_MDMDEFS_PHONE_NUM_MAX_LEN);
+        res = pa_sim_GetSubscriberPhoneNumber(localNumber, LE_MDMDEFS_PHONE_NUM_MAX_BYTES);
         if(res != LE_OK)
         {
             LE_ERROR("Unable to get subscriber phone number.");
@@ -1082,6 +1082,8 @@ le_result_t sms_simu_Init
 {
     LE_INFO("PA SMS Init");
 
+    LE_FATAL_IF(LE_OK != smsPdu_Initialize(), "Unable to init smsPdu");
+
     EventNewSmsId = le_event_CreateId("EventNewSmsId", sizeof(pa_sms_NewMessageIndication_t));
 
     pa_sms_DelAllMsg();
@@ -1090,6 +1092,7 @@ le_result_t sms_simu_Init
     le_mem_SetDestructor(SmsMemPoolRef, SmsMemPoolDestructor);
 
     InitSmsServer(5000);
+
     return LE_OK;
 }
 
