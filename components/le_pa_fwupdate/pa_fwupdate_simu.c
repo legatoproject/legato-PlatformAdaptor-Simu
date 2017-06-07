@@ -59,6 +59,13 @@ static size_t ResumePosition = 0;
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Static variable for simulating the sync before update disabled/enabled
+ */
+//--------------------------------------------------------------------------------------------------
+static bool IsSyncBeforeUpdateDisabled = false;
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Set the stub return code.
  */
 //--------------------------------------------------------------------------------------------------
@@ -632,6 +639,35 @@ le_result_t pa_fwupdate_InitDownload
     if (ReturnCode == LE_OK)
     {
         IsInitDownloadRequested = true;
+    }
+    return ReturnCode;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Disable (true) or enable (false) the synchronisation check before performing an update.
+ * The default behavior at startup is always to have the check enabled. It remains enabled
+ * until this service is called with the value true. To re-enable the synchronization check
+ * call this service with the value false
+ *
+ * @note Upgrading some partitions without performing a sync before may let the whole system
+ *       into a unworkable state. THIS IS THE RESPONSABILITY OF THE CALLER TO KNOW WHAT IMAGES
+ *       ARE ALREADY FLASHED INTO THE DUAL SYSTEM.
+ *
+ * @return
+ *      - LE_OK              On success
+ *      - LE_UNSUPPORTED     The feature is not supported
+ *      - LE_FAULT           On failure
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_fwupdate_DisableSyncBeforeUpdate
+(
+    bool isDisabled  ///< [IN] State of sync check : true (disable) or false (enable)
+)
+{
+    if (ReturnCode == LE_OK)
+    {
+        IsSyncBeforeUpdateDisabled = isDisabled;
     }
     return ReturnCode;
 }
