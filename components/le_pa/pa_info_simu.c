@@ -38,6 +38,9 @@ static char Sku[LE_INFO_MAX_SKU_BYTES] = PA_SIMU_INFO_DEFAULT_SKU;
 static char Psn[LE_INFO_MAX_PSN_BYTES] = PA_SIMU_INFO_DEFAULT_PSN;
 static char CapriName[LE_INFO_MAX_CAPRI_NAME_BYTES] = PA_SIMU_INFO_DEFAULT_CAPRI_NAME;
 static char CapriRev[LE_INFO_MAX_CAPRI_REV_BYTES] = PA_SIMU_INFO_DEFAULT_CAPRI_REV;
+static char ResetReasonStr[LE_INFO_MAX_RESET_BYTES] = "";
+static le_info_Reset_t ResetInformation = LE_INFO_RESET_UNKNOWN;
+
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -356,6 +359,25 @@ void pa_infoSimu_SetRfDeviceStatus
         return;
     }
     LE_ERROR("Failed to set Rf Device Status for index = %d",index);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the reset information information
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_infoSimu_SetResetInformation
+(
+    le_info_Reset_t reset,
+    const char*     reasonStr
+)
+{
+    ResetInformation = reset;
+    if(reasonStr)
+    {
+        le_utf8_Copy(ResetReasonStr, reasonStr, LE_INFO_MAX_RESET_BYTES, NULL);
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -968,4 +990,26 @@ le_result_t pa_info_GetRfDeviceStatus
         }
     }
     return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the last reset information reason
+ *
+ * @return
+ *      - LE_OK          on success
+ *      - LE_UNSUPPORTED if it is not supported by the platform
+ *        LE_OVERFLOW    specific reset information length exceeds the maximum length.
+ *      - LE_FAULT       for any other errors
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_info_GetResetInformation
+(
+    le_info_Reset_t* resetPtr,              ///< [OUT] Reset information
+    char* resetSpecificInfoStr,             ///< [OUT] Reset specific information
+    size_t resetSpecificInfoNumElements     ///< [IN] The length of specific information string.
+)
+{
+    *resetPtr = ResetInformation;
+    return le_utf8_Copy(resetSpecificInfoStr, ResetReasonStr, resetSpecificInfoNumElements, NULL);
 }
