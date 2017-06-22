@@ -957,8 +957,21 @@ le_result_t pa_mrc_SetSignalStrengthIndThresholds
     int32_t      upperRangeThreshold  ///< [IN] upper-range strength threshold in dBm
 )
 {
-    // TODO: implement this function
-    return LE_FAULT;
+    switch(rat)
+    {
+        case LE_MRC_RAT_GSM:
+        case LE_MRC_RAT_UMTS:
+        case LE_MRC_RAT_LTE:
+        case LE_MRC_RAT_CDMA:
+            break;
+
+        case LE_MRC_RAT_UNKNOWN:
+        default:
+            LE_ERROR("Bad parameter!");
+            return LE_FAULT;
+    }
+
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
