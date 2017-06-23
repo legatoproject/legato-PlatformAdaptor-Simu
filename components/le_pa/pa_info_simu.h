@@ -26,6 +26,8 @@
 #define PA_SIMU_INFO_DEFAULT_PRIID_REV         "0"
 #define PA_SIMU_INFO_DEFAULT_SKU               "0"
 #define PA_SIMU_INFO_DEFAULT_PSN               "0"
+#define PA_SIMU_INFO_DEFAULT_CAPRI_NAME        "0"
+#define PA_SIMU_INFO_DEFAULT_CAPRI_REV         "0"
 
 //--------------------------------------------------------------------------------------------------
 /**

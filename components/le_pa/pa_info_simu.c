@@ -36,6 +36,8 @@ static char PriIdPn[LE_INFO_MAX_PRIID_PN_BYTES] = PA_SIMU_INFO_DEFAULT_PRIID_PN;
 static char PriIdRev[LE_INFO_MAX_PRIID_REV_BYTES] = PA_SIMU_INFO_DEFAULT_PRIID_REV;
 static char Sku[LE_INFO_MAX_SKU_BYTES] = PA_SIMU_INFO_DEFAULT_SKU;
 static char Psn[LE_INFO_MAX_PSN_BYTES] = PA_SIMU_INFO_DEFAULT_PSN;
+static char CapriName[LE_INFO_MAX_CAPRI_NAME_BYTES] = PA_SIMU_INFO_DEFAULT_CAPRI_NAME;
+static char CapriRev[LE_INFO_MAX_CAPRI_REV_BYTES] = PA_SIMU_INFO_DEFAULT_CAPRI_REV;
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -746,6 +748,66 @@ le_result_t pa_info_GetPriId
 
     le_utf8_Copy(priIdPnStrPtr, PriIdPn, priIdPnStrNumElements, NULL);
     le_utf8_Copy(priIdRevStrPtr, PriIdRev, priIdRevStrNumElements, NULL);
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the Carrier PRI Name and Revision Number strings in ASCII text.
+ *
+ * @return
+ *      - LE_OK            The function succeeded.
+ *      - LE_FAULT         The function failed to get the value.
+ *      - LE_OVERFLOW      The Name or the Revision Number strings length exceed the maximum length.
+ *      - LE_UNSUPPORTED   The function is not supported on the platform.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_info_GetCarrierPri
+(
+    char* capriNameStrPtr,
+        ///< [OUT]
+        ///< The Carrier Product Requirement Information Name
+        ///< Carrier PRI Name string (null-terminated).
+
+    size_t capriNameStrPtrNumElements,
+        ///< [IN]
+
+    char* capriRevStrPtr,
+        ///< [OUT]
+        ///< The Carrier Product Requirement Information
+        ///< Carrier PRI Revision Number string (null-terminated).
+
+    size_t capriRevStrPtrNumElements
+        ///< [IN]
+)
+{
+    if (true == ApplySimuErrorCode)
+    {
+        return SimuRes;
+    }
+
+    if ( (capriNameStrPtr == NULL) || (capriRevStrPtr == NULL))
+    {
+        LE_ERROR("capriNameStrPtr or capriRevStrPtr is NULL.");
+        return LE_FAULT;
+    }
+
+    if (capriNameStrPtrNumElements < (strlen(CapriName) + 1))
+    {
+        LE_ERROR("capriNameStrPtrNumElements length (%d) too small < %d",
+                        (int) capriNameStrPtrNumElements, LE_INFO_MAX_CAPRI_NAME_BYTES);
+        return LE_OVERFLOW;
+    }
+
+    if (capriRevStrPtrNumElements < (strlen(CapriRev) + 1))
+    {
+        LE_ERROR("capriRevStrPtrNumElements length (%d) too small < %d",
+                        (int) capriRevStrPtrNumElements, LE_INFO_MAX_CAPRI_REV_BYTES);
+        return LE_OVERFLOW;
+    }
+
+    le_utf8_Copy(capriNameStrPtr, PriIdPn, capriNameStrPtrNumElements, NULL);
+    le_utf8_Copy(capriRevStrPtr, PriIdRev, capriRevStrPtrNumElements, NULL);
     return LE_OK;
 }
 
