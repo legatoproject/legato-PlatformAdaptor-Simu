@@ -980,18 +980,22 @@ le_result_t pa_sim_SendApdu
     size_t*        lenPtr   ///< [IN,OUT] APDU message response length in bytes.
 )
 {
+    // Response for APDU command successfully executed
+    uint8_t result[] = {0x90, 0x00};
+
+    LE_ASSERT(NULL != apduPtr);
+    LE_ASSERT(*lenPtr >= sizeof(result));
+    LE_ASSERT(NULL != respPtr);
+
     if (SimAccessTest)
     {
-        uint8_t expectedApdu[]={ 0x00, 0xA4, 0x00, 0x0C, 0x02, 0x6F, 0x07 };
-        uint8_t result[] = {0x90, 0x00};
-
-        LE_ASSERT( apduLen == sizeof(expectedApdu) );
-        LE_ASSERT( memcmp(apduPtr, expectedApdu, apduLen) == 0 );
-        LE_ASSERT( *lenPtr >= sizeof(result) );
-        memcpy(respPtr, result, sizeof(result));
-        *lenPtr = sizeof(result);
+        uint8_t expectedApdu[]={0x00, 0xA4, 0x00, 0x0C, 0x02, 0x6F, 0x07};
+        LE_ASSERT(apduLen == sizeof(expectedApdu));
+        LE_ASSERT(0 == memcmp(apduPtr, expectedApdu, apduLen));
     }
 
+    memcpy(respPtr, result, sizeof(result));
+    *lenPtr = sizeof(result);
     return LE_OK;
 }
 
