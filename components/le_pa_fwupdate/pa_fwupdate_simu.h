@@ -134,5 +134,15 @@ void pa_fwupdateSimu_SetResumePosition
 (
     size_t position   ///< [IN] simulated resume position
 );
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Simulate a bad image report
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_fwupdateSimu_ReportBadImage
+(
+    void
+);
 #endif // PA_FWUPDATE_SIMU_H_INCLUDE_GUARD
 

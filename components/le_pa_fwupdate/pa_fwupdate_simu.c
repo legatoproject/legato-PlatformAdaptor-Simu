@@ -66,6 +66,13 @@ static bool IsSyncBeforeUpdateDisabled = false;
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Static variable to store event id to simulate a report
+ */
+//--------------------------------------------------------------------------------------------------
+static le_event_Id_t BadImageEventId;
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Next system in "use". At start-up, the next and current are the same.
  */
 //--------------------------------------------------------------------------------------------------
@@ -245,6 +252,21 @@ void pa_fwupdateSimu_SetResumePosition
 )
 {
     ResumePosition = position;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Simulate a bad image report
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_fwupdateSimu_ReportBadImage
+(
+    void
+)
+{
+    char *str = {"test bad image handler"};
+    LE_INFO("Report bad image event");
+    le_event_Report(BadImageEventId, str, strlen(str));
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -731,6 +753,41 @@ le_result_t pa_fwupdate_GetSystem
         memcpy(systemArray, SystemSet, sizeof(SystemSet));
     }
     return ReturnCode;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Start the bad image indication
+ *
+ * @return
+ *      - LE_OK             on success
+ *      - LE_FAULT          on failure
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_fwupdate_StartBadImageIndication
+(
+    le_event_Id_t eventId       ///< the event Id to use to report the bad image
+)
+{
+    BadImageEventId = eventId;
+    return ReturnCode;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Stop the bad image indication
+ *
+ * @return
+ *      - LE_OK             on success
+ *      - LE_FAULT          on failure
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_fwupdate_StopBadImageIndication
+(
+    void
+)
+{
+    return;
 }
 
 //--------------------------------------------------------------------------------------------------
