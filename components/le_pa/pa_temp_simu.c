@@ -298,6 +298,28 @@ le_event_HandlerRef_t* pa_temp_AddTempEventHandler
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Reset the temperature sensor handle.
+ *
+ * @return
+ *      - LE_OK            The function succeeded.
+ *      - LE_FAULT         The function failed.
+ *      - LE_UNSUPPORTED   The function does not support this operation.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_temp_ResetHandle
+(
+    const char*         sensorPtr  ///< [IN] Name of the temperature sensor.
+)
+{
+    if (LE_OK == ReturnCode)
+    {
+        PaSensorHandle.leHandle = NULL;
+    }
+    return ReturnCode;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  *
  * This function is used to initialize the PA Temperature
  *
