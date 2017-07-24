@@ -33,7 +33,7 @@ typedef struct
 
 static MdcSimuProfile_t* MdcSimuProfile;
 static pa_mdc_SessionStateHandler_t SessionStateHandler;
-static le_mem_PoolRef_t NewSessionStatePool;
+static le_mem_PoolRef_t NewSessionStatePool , MdcSimuProfileDataPool;
 static pa_mdc_PktStatistics_t DataStatistics;
 
 #define LE_MDMDEFS_IPVERSION_2_LE_MDC_PDP(X) ((X == LE_MDMDEFS_IPV4) ? LE_MDC_PDP_IPV4:\
@@ -418,7 +418,7 @@ void pa_mdcSimu_SetProfile
     if (!profileTmpPtr)
     {
         /* profileIndex has not been found, allocating new profile */
-        MdcSimuProfile_t *profilePtr = malloc(sizeof(MdcSimuProfile_t));
+        MdcSimuProfile_t *profilePtr = le_mem_ForceAlloc(MdcSimuProfileDataPool);
         memset(profilePtr,0,sizeof(MdcSimuProfile_t));
         profilePtr->profileIndex = profileIndex;
         profilePtr->profileData = *profileDataPtr;
@@ -949,6 +949,7 @@ le_result_t pa_mdcSimu_Init
 )
 {
     NewSessionStatePool = le_mem_CreatePool("NewSessionStatePool", sizeof(pa_mdc_SessionStateData_t));
+    MdcSimuProfileDataPool = le_mem_CreatePool("MdcSimuProfileDataPool", sizeof(MdcSimuProfile_t));
 
     ProvideDefaultProfile();
 
