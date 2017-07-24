@@ -961,6 +961,7 @@ le_result_t pa_mrc_SetSignalStrengthIndThresholds
     {
         case LE_MRC_RAT_GSM:
         case LE_MRC_RAT_UMTS:
+        case LE_MRC_RAT_TDSCDMA:
         case LE_MRC_RAT_LTE:
         case LE_MRC_RAT_CDMA:
             break;
