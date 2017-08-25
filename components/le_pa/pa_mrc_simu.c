@@ -977,6 +977,40 @@ le_result_t pa_mrc_SetSignalStrengthIndThresholds
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * This function must be called to set and activate the delta for signal strength indications.
+ *
+ * @return
+ *  - LE_FAULT  Function failed.
+ *  - LE_OK     Function succeeded.
+ *  - LE_BAD_PARAMETER  Bad parameters.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_SetSignalStrengthIndDelta
+(
+    le_mrc_Rat_t rat,    ///< [IN] Radio Access Technology
+    uint16_t     delta   ///< [IN] Signal delta in units of 0.1 dB
+)
+{
+    switch(rat)
+    {
+        case LE_MRC_RAT_GSM:
+        case LE_MRC_RAT_UMTS:
+        case LE_MRC_RAT_TDSCDMA:
+        case LE_MRC_RAT_LTE:
+        case LE_MRC_RAT_CDMA:
+            break;
+
+        case LE_MRC_RAT_UNKNOWN:
+        default:
+            LE_ERROR("Bad parameter!");
+            return LE_FAULT;
+    }
+
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * This function must be called to get the serving cell Identifier.
  *
  * @return
