@@ -1226,3 +1226,37 @@ bool mrc_simu_IsOnline
     return ( (state == LE_MRC_REG_HOME) || (state == LE_MRC_REG_ROAMING) );
 }
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to register a handler to report network reject code.
+ *
+ * @return A handler reference, which is only needed for later removal of the handler.
+ *
+ * @note Doesn't return on failure, so there's no need to check the return value for errors.
+ */
+//--------------------------------------------------------------------------------------------------
+le_event_HandlerRef_t pa_mrc_AddNetworkRejectIndHandler
+(
+    pa_mrc_NetworkRejectIndHdlrFunc_t networkRejectIndHandler, ///< [IN] The handler function to
+                                                               ///< report network reject
+                                                               ///< indication.
+    void*                             contextPtr               ///< [IN] The context to be given to
+                                                               ///< the handler.
+)
+{
+    return NULL;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to unregister the handler for Network Reject Indication handling.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_mrc_RemoveNetworkRejectIndHandler
+(
+    le_event_HandlerRef_t handlerRef
+)
+{
+    le_event_RemoveHandler(handlerRef);
+}

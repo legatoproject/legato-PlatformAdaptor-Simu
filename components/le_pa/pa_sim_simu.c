@@ -13,6 +13,13 @@
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Declaration of constants.
+ */
+//--------------------------------------------------------------------------------------------------
+#define MAX_FPLMN_OPERATOR 5
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Declaration of variables used by the simulation engine.
  */
 //--------------------------------------------------------------------------------------------------
@@ -34,6 +41,7 @@ static le_event_Id_t SimToolkitEvent;
 static pa_sim_NewStateHdlrFunc_t SimStateHandler;
 static le_mem_PoolRef_t SimStateEventPool;
 static bool SimAccessTest = false;
+static pa_sim_MobileCode_t FPLMNOperator[MAX_FPLMN_OPERATOR];
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -1143,6 +1151,112 @@ le_result_t pa_sim_SendCommand
 {
     *sw1Ptr = 0x90;
     *sw2Ptr = 0x00;
+
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to reset the SIM.
+ *
+ * @return
+ *      - LE_OK          On success.
+ *      - LE_FAULT       On failure.
+ *      - LE_UNSUPPORTED The platform does not support this operation.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sim_Reset
+(
+    void
+)
+{
+    LE_ERROR("Unsupported function called");
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to write the FPLMN list into the modem.
+ *
+ * @return
+ *      - LE_OK             On success.
+ *      - LE_FAULT          On failure.
+ *      - LE_BAD_PARAMETER  A parameter is invalid.
+ *      - LE_UNSUPPORTED    The platform does not support this operation.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sim_WriteFPLMNList
+(
+    le_dls_List_t *FPLMNListPtr ///< [IN] List of FPLMN operators
+)
+{
+    pa_sim_FPLMNOperator_t* nodePtr;
+    le_dls_Link_t *linkPtr;
+
+    int i;
+    for(i = 0, linkPtr = le_dls_Peek(FPLMNListPtr); (linkPtr != NULL) && (i < MAX_FPLMN_OPERATOR);
+        i++, linkPtr = le_dls_PeekNext(FPLMNListPtr, linkPtr))
+    {
+        // Get the node from FPLMNList
+        nodePtr = CONTAINER_OF(linkPtr, pa_sim_FPLMNOperator_t, link);
+
+        le_utf8_Copy(FPLMNOperator[i].mcc, nodePtr->mobileCode.mcc, LE_MRC_MCC_BYTES, NULL);
+        le_utf8_Copy(FPLMNOperator[i].mnc, nodePtr->mobileCode.mnc, LE_MRC_MNC_BYTES, NULL);
+    }
+
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to get the number of FPLMN operators present in the list.
+ *
+ * @return
+ *      - LE_OK             On success.
+ *      - LE_FAULT          On failure.
+ *      - LE_BAD_PARAMETER  A parameter is invalid.
+ *      - LE_UNSUPPORTED    The platform does not support this operation.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sim_CountFPLMNOperators
+(
+    uint32_t*  nbItemPtr     ///< [OUT] number of FPLMN operator found if success.
+)
+{
+    *nbItemPtr = MAX_FPLMN_OPERATOR;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to read the FPLMN list.
+ *
+ * @return
+ *      - LE_OK             On success.
+ *      - LE_NOT_FOUND      If no FPLMN network is available.
+ *      - LE_BAD_PARAMETER  A parameter is invalid.
+ *      - LE_UNSUPPORTED    The platform does not support this operation.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sim_ReadFPLMNOperators
+(
+    pa_sim_FPLMNOperator_t* FPLMNOperatorPtr,   ///< [OUT] FPLMN operators.
+    uint32_t* FPLMNOperatorCountPtr             ///< [IN/OUT] FPLMN operator count.
+)
+{
+    if (*FPLMNOperatorCountPtr > MAX_FPLMN_OPERATOR)
+    {
+        *FPLMNOperatorCountPtr = MAX_FPLMN_OPERATOR;
+    }
+
+    int i;
+    for (i = 0; i < *FPLMNOperatorCountPtr; i++)
+    {
+        le_utf8_Copy(FPLMNOperatorPtr[i].mobileCode.mcc, FPLMNOperator[i].mcc, LE_MRC_MCC_BYTES,
+                     NULL);
+        le_utf8_Copy(FPLMNOperatorPtr[i].mobileCode.mnc, FPLMNOperator[i].mnc, LE_MRC_MNC_BYTES,
+                     NULL);
+    }
 
     return LE_OK;
 }
