@@ -496,6 +496,10 @@ le_result_t pa_sms_ListMsgFromMem
             *numPtr = NumberSmsInStorageNv;
             LE_DEBUG("NumberSmsInStorageNv %d ",NumberSmsInStorageNv);
         }
+        else
+        {
+            *numPtr = 0;
+        }
     }
     else if (storage == PA_SMS_STORAGE_SIM)
     {
@@ -503,6 +507,10 @@ le_result_t pa_sms_ListMsgFromMem
         {
             *numPtr = NumberSmsInStorageSim;
             LE_DEBUG("NumberSmsInStorageSim %d ",NumberSmsInStorageSim);
+        }
+        else
+        {
+            *numPtr = 0;
         }
     }
     else if (storage == PA_SMS_STORAGE_NONE)
@@ -512,11 +520,16 @@ le_result_t pa_sms_ListMsgFromMem
             *numPtr = NumberSmsInStorageNone;
             LE_DEBUG("NumberSmsInStorageNone %d ",NumberSmsInStorageNone);
         }
+        else
+        {
+            *numPtr = 0;
+        }
     }
     else
     {
         *numPtr = 0;
     }
+
     return LE_OK;
 }
 
@@ -789,7 +802,11 @@ static le_result_t SmsServerHandleLocalMessage
             return LE_NOT_POSSIBLE;
         }
 
-        res = smsPdu_Decode(sourceMsgPtr->protocol, sourceMsgPtr->data, sourceMsgPtr->dataLen, &decodedMessage);
+        res = smsPdu_Decode(sourceMsgPtr->protocol,
+                            sourceMsgPtr->data,
+                            sourceMsgPtr->dataLen,
+                            true,
+                            &decodedMessage);
         if(res != LE_OK)
         {
             LE_ERROR("Unable to decode message.");
@@ -803,18 +820,19 @@ static le_result_t SmsServerHandleLocalMessage
         }
 
         /* Destination and local number are the same */
-        if( strncmp(decodedMessage.smsSubmit.da, localNumber, LE_MDMDEFS_PHONE_NUM_MAX_LEN) == 0)
+        if (0 == strncmp(decodedMessage.smsSubmit.da, localNumber, LE_MDMDEFS_PHONE_NUM_MAX_LEN))
         {
             pa_sms_Pdu_t pdu;
             le_result_t res;
             smsPdu_Encoding_t encoding;
+            smsPdu_DataToEncode_t data;
 
             union {
                 pa_sms_SimuPdu_t header;
                 char buffer[1024];
             } txBuffer;
 
-            switch(decodedMessage.smsSubmit.format)
+            switch (decodedMessage.smsSubmit.format)
             {
                 case LE_SMS_FORMAT_BINARY:
                 case LE_SMS_FORMAT_PDU:
@@ -837,15 +855,16 @@ static le_result_t SmsServerHandleLocalMessage
                     encoding,
                     sourceMsgPtr->protocol);
 
-            res = smsPdu_Encode(
-                    sourceMsgPtr->protocol,
-                    decodedMessage.smsSubmit.data,
-                    decodedMessage.smsSubmit.dataLen,
-                    decodedMessage.smsSubmit.da,
-                    encoding,
-                    PA_SMS_DELIVER,
-                    &pdu);
+            memset(&data, 0, sizeof(data));
+            data.protocol = sourceMsgPtr->protocol;
+            data.messagePtr = decodedMessage.smsSubmit.data;
+            data.length = decodedMessage.smsSubmit.dataLen;
+            data.addressPtr = decodedMessage.smsSubmit.da;
+            data.encoding = encoding;
+            data.messageType = PA_SMS_DELIVER;
+            data.statusReport = false;
 
+            res = smsPdu_Encode(&data, &pdu);
             if(res != LE_OK)
             {
                 LE_ERROR("Unable to encode message.");
