@@ -134,12 +134,14 @@ static void AppendNetworkScanResult
     newScanInformationPtr->link = LE_DLS_LINK_INIT;
 
     // @TODO Default to SIM MCC/MNC
-    strcpy(mccStr, PA_SIMU_SIM_DEFAULT_MCC);
-    strcpy(mncStr, PA_SIMU_SIM_DEFAULT_MNC);
+    strncpy(mccStr, PA_SIMU_SIM_DEFAULT_MCC, sizeof(mccStr));
+    strncpy(mncStr, PA_SIMU_SIM_DEFAULT_MNC, sizeof(mncStr));
 
     newScanInformationPtr->rat = rat;
-    strcpy(newScanInformationPtr->mobileCode.mcc, mccStr);
-    strcpy(newScanInformationPtr->mobileCode.mnc, mncStr);
+    strncpy(newScanInformationPtr->mobileCode.mcc, mccStr,
+            sizeof(newScanInformationPtr->mobileCode.mcc));
+    strncpy(newScanInformationPtr->mobileCode.mnc, mncStr,
+            sizeof(newScanInformationPtr->mobileCode.mnc));
     newScanInformationPtr->isInUse = IsNetworkInUse(rat, mccStr, mncStr);
     newScanInformationPtr->isAvailable = !(newScanInformationPtr->isInUse);
     newScanInformationPtr->isHome = true;

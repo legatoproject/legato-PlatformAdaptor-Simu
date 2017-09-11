@@ -853,8 +853,10 @@ static le_result_t SmsServerHandleLocalMessage
             }
 
             txBuffer.header.protocol = sourceMsgPtr->protocol;
-            strcpy( (char *)txBuffer.header.origAddress, localNumber);
-            strcpy( (char *)txBuffer.header.destAddress, localNumber);
+            strncpy((char *)txBuffer.header.origAddress, localNumber,
+                    sizeof(txBuffer.header.origAddress));
+            strncpy((char *)txBuffer.header.destAddress, localNumber,
+                    sizeof(txBuffer.header.destAddress));
 
             txBuffer.header.dataLen = pdu.dataLen;
             memcpy(txBuffer.header.data, pdu.data, pdu.dataLen);

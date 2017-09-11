@@ -168,15 +168,14 @@ le_result_t pa_mdc_GetGatewayAddress
         return LE_FAULT;
     }
 
-    if ( !profilePtr->sessionStarted[LE_MDMDEFS_IPVERSION_2_LE_MDC_PDP(ipVersion)] )
+    if (!profilePtr->sessionStarted[LE_MDMDEFS_IPVERSION_2_LE_MDC_PDP(ipVersion)])
     {
         return LE_FAULT;
     }
 
-
     if (gatewayAddrStrSize >= strlen(profilePtr->gatewayAddrStr[ipVersion]))
     {
-        strcpy(gatewayAddrStr, profilePtr->gatewayAddrStr[ipVersion]);
+        strncpy(gatewayAddrStr, profilePtr->gatewayAddrStr[ipVersion], gatewayAddrStrSize);
         return LE_OK;
     }
 
@@ -266,11 +265,11 @@ le_result_t pa_mdc_GetInterfaceName
         return LE_FAULT;
     }
 
-    if (( profilePtr->sessionStarted[LE_MDC_PDP_IPV4] ||
-        profilePtr->sessionStarted[LE_MDC_PDP_IPV6] ) &&
-        ( interfaceNameStrSize >= strlen(profilePtr->interfaceName) ))
+    if ((profilePtr->sessionStarted[LE_MDC_PDP_IPV4] ||
+        profilePtr->sessionStarted[LE_MDC_PDP_IPV6]) &&
+        (interfaceNameStrSize >= strlen(profilePtr->interfaceName)))
     {
-        strcpy( interfaceNameStr, profilePtr->interfaceName );
+        strncpy(interfaceNameStr, profilePtr->interfaceName, interfaceNameStrSize);
 
         return LE_OK;
     }
