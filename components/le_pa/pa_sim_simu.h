@@ -21,6 +21,7 @@
 #define PA_SIMU_SIM_DEFAULT_PUK_REMAINING_ATTEMPTS  3
 #define PA_SIMU_SIM_DEFAULT_IMSI                    "001012345678910"
 #define PA_SIMU_SIM_DEFAULT_ICCID                   "12345678901234567890"
+#define PA_SIMU_SIM_DEFAULT_EID                     "69876501010101010101010101050028"
 #define PA_SIMU_SIM_DEFAULT_PHONE_NUMBER            "+15032541000"
 #define PA_SIMU_SIM_DEFAULT_HOME_NETWORK            "test"
 #define PA_SIMU_SIM_DEFAULT_PIN                     "0000"
@@ -117,12 +118,12 @@ void pa_simSimu_SetCardIdentification
 
 //--------------------------------------------------------------------------------------------------
 /**
- * This function set the International Mobile Subscriber Identity (IMSI).
+ * This function sets the EID.
  */
 //--------------------------------------------------------------------------------------------------
-void pa_simSimu_SetIMSI
+void pa_simSimu_SetEID
 (
-    pa_sim_Imsi_t imsi   ///< [IN] IMSI value
+    const pa_sim_Eid_t eid     ///< [IN] EID value
 );
 
 //--------------------------------------------------------------------------------------------------

@@ -31,6 +31,7 @@ static char HomeMcc[LE_MRC_MCC_BYTES] = PA_SIMU_SIM_DEFAULT_MCC;
 static char HomeMnc[LE_MRC_MNC_BYTES] = PA_SIMU_SIM_DEFAULT_MNC;
 static pa_sim_Imsi_t Imsi = PA_SIMU_SIM_DEFAULT_IMSI;
 static pa_sim_CardId_t Iccid = PA_SIMU_SIM_DEFAULT_ICCID;
+static pa_sim_Eid_t Eid = PA_SIMU_SIM_DEFAULT_EID;
 static char PhoneNumber[LE_MDMDEFS_PHONE_NUM_MAX_BYTES] = PA_SIMU_SIM_DEFAULT_PHONE_NUMBER;
 static char* HomeNetworkOperator = PA_SIMU_SIM_DEFAULT_HOME_NETWORK;
 static char Pin[PA_SIM_PIN_MAX_LEN+1] = PA_SIMU_SIM_DEFAULT_PIN;
@@ -84,6 +85,9 @@ static const simuConfig_Property_t ConfigProperties[] = {
     { .name = "iccid",
       .setter = { .type = SIMUCONFIG_HANDLER_STRING,
                   .handler = { .stringFn = pa_simSimu_SetCardIdentification } } },
+    { .name = "eid",
+      .setter = { .type = SIMUCONFIG_HANDLER_STRING,
+                  .handler = { .stringFn = pa_simSimu_SetEID } } },
     { .name = "phoneNumber",
       .setter = { .type = SIMUCONFIG_HANDLER_STRING,
                   .handler = { .stringFn = pa_simSimu_SetSubscriberPhoneNumber } } },
@@ -305,6 +309,19 @@ void pa_simSimu_SetCardIdentification
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * This function sets the EID.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_SetEID
+(
+    const pa_sim_Eid_t eid     ///< [IN] EID value
+)
+{
+    le_utf8_Copy(Eid, eid, sizeof(pa_sim_Eid_t), NULL);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * This function gets the card identification (ICCID).
  *
  * @return
@@ -408,6 +425,36 @@ le_result_t pa_sim_GetState
 )
 {
     *statePtr = SimState;
+
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function rerieves the identifier for the embedded Universal Integrated Circuit Card (EID)
+ * (16 digits)
+ *
+ * @return LE_OK            The function succeeded.
+ * @return LE_FAULT         The function failed.
+ * @return LE_UNSUPPORTED   The platform does not support this operation.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sim_GetCardEID
+(
+   pa_sim_Eid_t eid               ///< [OUT] the EID value
+)
+{
+    switch (SimState)
+    {
+        case LE_SIM_BLOCKED:
+        case LE_SIM_INSERTED:
+        case LE_SIM_READY:
+            break;
+        default:
+            return LE_FAULT;
+    }
+
+    le_utf8_Copy(eid, Eid, sizeof(pa_sim_Eid_t), NULL);
 
     return LE_OK;
 }
