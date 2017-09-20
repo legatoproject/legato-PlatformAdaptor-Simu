@@ -7,12 +7,291 @@
  */
 
 #include <pa_gnss.h>
+#include "pa_gnss_simu.h"
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the NMEA string for NMEA handler
+ */
+//--------------------------------------------------------------------------------------------------
+#define NMEA_STR_LEN                  32
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the suplCertificateId length
+ */
+//--------------------------------------------------------------------------------------------------
+#define SUPL_CERTIFICATE_ID_LEN        9
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Position event ID used to report position events to the registered event handlers.
+ */
+//--------------------------------------------------------------------------------------------------
 static le_event_Id_t        GnssEventId;
 
 //--------------------------------------------------------------------------------------------------
 /**
- * This function must be called to initialize the PA gnss Module.
+ * Nmea event ID used to report Nmea events to the registered event handlers.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_event_Id_t        NmeaEventId;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * The computed position data.
+ */
+//--------------------------------------------------------------------------------------------------
+static pa_Gnss_Position_t   GnssPositionData;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Memory pool for position event data.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_mem_PoolRef_t     PositionEventDataPool;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Memory pool for Nmea event data.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_mem_PoolRef_t     NmeaEventDataPool;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * The configured SUPL assisted mode.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_gnss_AssistedMode_t SuplAssistedMode = LE_GNSS_STANDALONE_MODE;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * The configured bit mask for NMEA.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_gnss_NmeaBitMask_t NmeaBitMask = LE_GNSS_NMEA_MASK_GPGGA;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * GNSS position default pointer initialization.
+ */
+//--------------------------------------------------------------------------------------------------
+static void InitializeDefaultGnssPositionData
+(
+    pa_Gnss_Position_t* posDataPtr  // [IN/OUT] Pointer to the position data.
+)
+{
+    int i;
+    posDataPtr->fixState = LE_GNSS_STATE_FIX_NO_POS;
+    posDataPtr->altitudeValid = false;
+    posDataPtr->altitudeOnWgs84Valid = false;
+    posDataPtr->dateValid = false;
+    posDataPtr->hdopValid = false;
+    posDataPtr->hSpeedUncertaintyValid = false;
+    posDataPtr->hSpeedValid = false;
+    posDataPtr->hUncertaintyValid = false;
+    posDataPtr->latitudeValid = false;
+    posDataPtr->longitudeValid = false;
+    posDataPtr->timeValid = false;
+    posDataPtr->gpsTimeValid = false;
+    posDataPtr->timeAccuracyValid = false;
+    posDataPtr->positionLatencyValid = false;
+    posDataPtr->directionUncertaintyValid = false;
+    posDataPtr->directionValid = false;
+    posDataPtr->vdopValid = false;
+    posDataPtr->vSpeedUncertaintyValid = false;
+    posDataPtr->vSpeedValid = false;
+    posDataPtr->vUncertaintyValid = false;
+    posDataPtr->pdopValid = false;
+    posDataPtr->satMeasValid = false;
+    posDataPtr->leapSecondsValid = false;
+    posDataPtr->gdopValid = false;
+    posDataPtr->tdopValid = false;
+
+    for (i=0; i<LE_GNSS_SV_INFO_MAX_LEN; i++)
+    {
+        posDataPtr->satMeas[i].satId = 0;
+        posDataPtr->satMeas[i].satLatency = 0;
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * GNSS position valid pointer initialization.
+ */
+//--------------------------------------------------------------------------------------------------
+static void InitializeValidGnssPositionData
+(
+    pa_Gnss_Position_t* posDataPtr  // [IN/OUT] Pointer to the position data.
+)
+{
+    int i;
+    posDataPtr->fixState = LE_GNSS_STATE_FIX_NO_POS;
+    posDataPtr->altitudeValid = true;
+    posDataPtr->altitude = 10;
+    posDataPtr->altitudeOnWgs84Valid = true;
+    posDataPtr->altitudeOnWgs84 = 10378;
+    posDataPtr->dateValid = true;
+    posDataPtr->date.year = 2017;
+    posDataPtr->date.month = 10;
+    posDataPtr->date.day = 4;
+    posDataPtr->hdopValid = true;
+    posDataPtr->hdop = 5;
+    posDataPtr->hSpeedUncertaintyValid = true;
+    posDataPtr->hSpeedUncertainty = 8090;
+    posDataPtr->hSpeedValid = true;
+    posDataPtr->hSpeed = 20;
+    posDataPtr->hUncertaintyValid = true;
+    posDataPtr->hUncertainty = 100;
+    posDataPtr->latitudeValid = true;
+    posDataPtr->latitude = 37981;
+    posDataPtr->longitudeValid = true;
+    posDataPtr->longitude = 91078;
+    posDataPtr->timeValid = true;
+    posDataPtr->epochTime = 1000;
+    posDataPtr->gpsTimeValid = true;
+    posDataPtr->gpsWeek = 7;
+    posDataPtr->gpsTimeOfWeek = 5;
+    posDataPtr->time.hours = 23;
+    posDataPtr->time.minutes = 59;
+    posDataPtr->time.seconds = 50;
+    posDataPtr->time.milliseconds = 100;
+    posDataPtr->timeAccuracyValid = true;
+    posDataPtr->timeAccuracy = 100000;
+    posDataPtr->positionLatencyValid = true;
+    posDataPtr->positionLatency = 109831;
+    posDataPtr->directionUncertaintyValid = true;
+    posDataPtr->directionUncertainty = 21987;
+    posDataPtr->directionValid = true;
+    posDataPtr->direction = 11576;
+    posDataPtr->vdopValid = true;
+    posDataPtr->vdop = 6;
+    posDataPtr->vSpeedUncertaintyValid = true;
+    posDataPtr->vSpeedUncertainty = 20;
+    posDataPtr->vSpeedValid = true;
+    posDataPtr->vSpeed = 50;
+    posDataPtr->vUncertaintyValid = true;
+    posDataPtr->vUncertainty = 100;
+    posDataPtr->vUncertainty = 20;
+    posDataPtr->pdopValid = true;
+    posDataPtr->pdop = 7;
+    posDataPtr->leapSecondsValid = true;
+    posDataPtr->leapSeconds = 30;
+    posDataPtr->gdopValid = true;
+    posDataPtr->gdop = 8;
+    posDataPtr->tdopValid = true;
+    posDataPtr->tdop = 9;
+
+    posDataPtr->satMeasValid = true;
+    for (i=0; i<LE_GNSS_SV_INFO_MAX_LEN; i++)
+    {
+        posDataPtr->satMeas[i].satId = 0;
+        posDataPtr->satMeas[i].satLatency = 0;
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Initialize default satellites info that are updated in SV information report indication.
+ */
+//--------------------------------------------------------------------------------------------------
+static void InitializeDefaultSatInfo
+(
+    pa_Gnss_Position_t* posDataPtr  // [IN/OUT] Pointer to the position data.
+)
+{
+    int i;
+    posDataPtr->satsInViewCountValid = false;
+    posDataPtr->satsTrackingCountValid = false;
+    posDataPtr->satInfoValid = false;
+    posDataPtr->magneticDeviationValid = false;
+
+    for (i=0; i<LE_GNSS_SV_INFO_MAX_LEN; i++)
+    {
+        posDataPtr->satInfo[i].satId = 0;
+        posDataPtr->satInfo[i].satConst = LE_GNSS_SV_CONSTELLATION_UNDEFINED;
+        posDataPtr->satInfo[i].satTracked = 0;
+        posDataPtr->satInfo[i].satSnr = 0;
+        posDataPtr->satInfo[i].satAzim = 0;
+        posDataPtr->satInfo[i].satElev = 0;
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Initialize valid satellites info that are updated in SV information report indication.
+ */
+//--------------------------------------------------------------------------------------------------
+static void InitializeValidSatInfo
+(
+    pa_Gnss_Position_t* posDataPtr  // [IN/OUT] Pointer to the position data.
+)
+{
+    int i;
+    posDataPtr->satsInViewCountValid = true;
+    posDataPtr->satsInViewCount = 10;
+    posDataPtr->satsTrackingCountValid = true;
+    posDataPtr->satsTrackingCount = 8;
+    posDataPtr->magneticDeviationValid = true;
+    posDataPtr->magneticDeviation = 20;
+    posDataPtr->satInfoValid = true;
+
+    for (i=0; i<LE_GNSS_SV_INFO_MAX_LEN; i++)
+    {
+        posDataPtr->satInfo[i].satId = 0;
+        posDataPtr->satInfo[i].satConst = LE_GNSS_SV_CONSTELLATION_UNDEFINED;
+        posDataPtr->satInfo[i].satTracked = 0;
+        posDataPtr->satInfo[i].satSnr = 0;
+        posDataPtr->satInfo[i].satAzim = 0;
+        posDataPtr->satInfo[i].satElev = 0;
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Initialize default satellites info that are updated as "used" in SV information report
+ * indication.
+ */
+//--------------------------------------------------------------------------------------------------
+static void InitializeDefaultSatUsedInfo
+(
+    pa_Gnss_Position_t* posDataPtr  // [IN/OUT] Pointer to the position data.
+)
+{
+    int i;
+    // Reset the SV marked as used in position data list.
+    posDataPtr->satsUsedCountValid = false;
+    for (i=0; i<LE_GNSS_SV_INFO_MAX_LEN; i++)
+    {
+        posDataPtr->satInfo[i].satUsed = false;
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Initialize valid satellites info that are updated as "used" in SV information report
+ * indication.
+ */
+//--------------------------------------------------------------------------------------------------
+static void InitializeValidSatUsedInfo
+(
+    pa_Gnss_Position_t* posDataPtr  // [IN/OUT] Pointer to the position data.
+)
+{
+    int i;
+    // Reset the SV marked as used in position data list.
+    posDataPtr->satsUsedCountValid = true;
+    posDataPtr->satsUsedCount = 5;
+    for (i=0; i<LE_GNSS_SV_INFO_MAX_LEN; i++)
+    {
+        posDataPtr->satInfo[i].satUsed = 5;
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to simulate gnss init PA gnss Module.
  *
  * @return LE_FAULT  The function failed.
  * @return LE_OK     The function succeed.
@@ -23,9 +302,31 @@ le_result_t pa_gnss_Init
     void
 )
 {
-    GnssEventId = le_event_CreateIdWithRefCounting("gnssEventId");
+    InitializeDefaultGnssPositionData(&GnssPositionData);
+    InitializeDefaultSatInfo(&GnssPositionData);
+    InitializeDefaultSatUsedInfo(&GnssPositionData);
 
+    GnssEventId = le_event_CreateIdWithRefCounting("GnssEventId");
+    NmeaEventId = le_event_CreateIdWithRefCounting("GnssNmeaEventId");
+
+    PositionEventDataPool = le_mem_CreatePool("PositionEventDataPool", sizeof(pa_Gnss_Position_t));
+    NmeaEventDataPool = le_mem_CreatePool("NmeaEventDataPool", NMEA_STR_LEN * sizeof(char));
     return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Initialize valid position data
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_gnssSimu_SetGnssValidPositionData
+(
+    void
+)
+{
+    InitializeValidGnssPositionData(&GnssPositionData);
+    InitializeValidSatInfo(&GnssPositionData);
+    InitializeValidSatUsedInfo(&GnssPositionData);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -188,6 +489,26 @@ le_result_t pa_gnss_GetAcquisitionRate
 {
 
     return LE_FAULT;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Report the position event
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_gnssSimu_ReportEvent
+(
+    void
+)
+{
+    // Build the data for the user's event handler.
+    pa_Gnss_Position_t* posDataPtr = le_mem_ForceAlloc(PositionEventDataPool);
+    memcpy(posDataPtr, &GnssPositionData, sizeof(pa_Gnss_Position_t));
+    le_event_ReportWithRefCounting(GnssEventId, posDataPtr);
+    char* strDataPtr = le_mem_ForceAlloc(NmeaEventDataPool);
+    strncpy(strDataPtr, "nmea", NMEA_STR_LEN);
+    le_event_ReportWithRefCounting(NmeaEventId, strDataPtr);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -368,7 +689,7 @@ le_result_t pa_gnss_Disable
     void
 )
 {
-    return LE_FAULT;
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -385,7 +706,7 @@ le_result_t pa_gnss_Enable
     void
 )
 {
-    return LE_FAULT;
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -422,7 +743,14 @@ le_result_t pa_gnss_GetSuplAssistedMode
     le_gnss_AssistedMode_t *assistedModePtr      ///< [OUT] Assisted-GNSS mode.
 )
 {
-    return LE_FAULT;
+    if (assistedModePtr == NULL)
+    {
+        return LE_FAULT;
+    }
+
+    // Get the SUPL assisted mode
+    *assistedModePtr = SuplAssistedMode;
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -443,7 +771,7 @@ le_result_t pa_gnss_SetSuplServerUrl
     const char*  suplServerUrlPtr      ///< [IN] SUPL server URL.
 )
 {
-    return LE_FAULT;
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -466,7 +794,19 @@ le_result_t pa_gnss_InjectSuplCertificate
     const char*  suplCertificatePtr  ///< [IN] SUPL certificate contents.
 )
 {
-    return LE_FAULT;
+    // Check input parameters
+    if (NULL == suplCertificatePtr)
+    {
+        LE_ERROR("NULL pointer");
+        return LE_BAD_PARAMETER;
+    }
+    if (suplCertificateId > SUPL_CERTIFICATE_ID_LEN)
+    {
+        LE_ERROR("Invalid certificate ID %d", suplCertificateId);
+        return LE_BAD_PARAMETER;
+    }
+
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -487,7 +827,14 @@ le_result_t pa_gnss_DeleteSuplCertificate
                                 ///< Certificate ID range is 0 to 9
 )
 {
-    return LE_FAULT;
+    // Check input parameters
+    if (suplCertificateId > SUPL_CERTIFICATE_ID_LEN)
+    {
+        LE_ERROR("Invalid certificate ID %d", suplCertificateId);
+        return LE_BAD_PARAMETER;
+    }
+
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -506,7 +853,7 @@ le_result_t pa_gnss_SetNmeaSentences
     le_gnss_NmeaBitMask_t nmeaMask ///< [IN] Bit mask for enabled NMEA sentences.
 )
 {
-    return LE_FAULT;
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -525,7 +872,74 @@ le_result_t pa_gnss_GetNmeaSentences
     le_gnss_NmeaBitMask_t* nmeaMaskPtr ///< [OUT] Bit mask for enabled NMEA sentences.
 )
 {
-    return LE_FAULT;
+    if (NULL == nmeaMaskPtr)
+    {
+        LE_ERROR("NULL pointer");
+        return LE_FAULT;
+    }
+
+    *nmeaMaskPtr = NmeaBitMask;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to register an handler for NMEA frames notifications.
+ *
+ * @return A handler reference, which is only needed for later removal of the handler.
+ *
+ * @note Doesn't return on failure, so there's no need to check the return value for errors.
+ */
+//--------------------------------------------------------------------------------------------------
+le_event_HandlerRef_t pa_gnss_AddNmeaHandler
+(
+    pa_gnss_NmeaHandlerFunc_t handler ///< [IN] The handler function.
+)
+{
+    LE_FATAL_IF((handler==NULL),"gnss module cannot set handler");
+
+    le_event_HandlerRef_t newHandlerPtr = le_event_AddHandler(
+                                                            "gnssNmeaHandler",
+                                                            NmeaEventId,
+                                                            (le_event_HandlerFunc_t) handler);
+    return newHandlerPtr;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function sets the GNSS minimum elevation.
+ *
+ * @return
+ *  - LE_OK on success
+ *  - LE_FAULT on failure
+ *  - LE_UNSUPPORTED request not supported
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_gnss_SetMinElevation
+(
+    uint8_t  minElevation      ///< [IN] Minimum elevation in degrees [range 0..90].
+)
+{
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ *   Get the GNSS minimum elevation.
+ *
+* @return
+*  - LE_OK on success
+*  - LE_BAD_PARAMETER if minElevationPtr is NULL
+*  - LE_FAULT on failure
+*  - LE_UNSUPPORTED request not supported
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_gnss_GetMinElevation
+(
+   uint8_t*  minElevationPtr     ///< [OUT] Minimum elevation in degrees [range 0..90].
+)
+{
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
