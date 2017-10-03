@@ -138,10 +138,10 @@ static void AppendNetworkScanResult
     strncpy(mncStr, PA_SIMU_SIM_DEFAULT_MNC, sizeof(mncStr));
 
     newScanInformationPtr->rat = rat;
-    strncpy(newScanInformationPtr->mobileCode.mcc, mccStr,
-            sizeof(newScanInformationPtr->mobileCode.mcc));
-    strncpy(newScanInformationPtr->mobileCode.mnc, mncStr,
-            sizeof(newScanInformationPtr->mobileCode.mnc));
+    le_utf8_Copy(newScanInformationPtr->mobileCode.mcc, mccStr,
+                 sizeof(newScanInformationPtr->mobileCode.mcc), NULL);
+    le_utf8_Copy(newScanInformationPtr->mobileCode.mnc, mncStr,
+                 sizeof(newScanInformationPtr->mobileCode.mnc), NULL);
     newScanInformationPtr->isInUse = IsNetworkInUse(rat, mccStr, mncStr);
     newScanInformationPtr->isAvailable = !(newScanInformationPtr->isInUse);
     newScanInformationPtr->isHome = true;
