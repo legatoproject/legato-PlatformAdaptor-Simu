@@ -164,7 +164,7 @@ static void InitializeValidGnssPositionData
     posDataPtr->date.month = 10;
     posDataPtr->date.day = 4;
     posDataPtr->hdopValid = true;
-    posDataPtr->hdop = 5;
+    posDataPtr->hdop = 5000;
     posDataPtr->hSpeedUncertaintyValid = true;
     posDataPtr->hSpeedUncertainty = 8090;
     posDataPtr->hSpeedValid = true;
@@ -193,7 +193,7 @@ static void InitializeValidGnssPositionData
     posDataPtr->directionValid = true;
     posDataPtr->direction = 11576;
     posDataPtr->vdopValid = true;
-    posDataPtr->vdop = 6;
+    posDataPtr->vdop = 6000;
     posDataPtr->vSpeedUncertaintyValid = true;
     posDataPtr->vSpeedUncertainty = 20;
     posDataPtr->vSpeedValid = true;
@@ -201,13 +201,13 @@ static void InitializeValidGnssPositionData
     posDataPtr->vUncertaintyValid = true;
     posDataPtr->vUncertainty = 100;
     posDataPtr->pdopValid = true;
-    posDataPtr->pdop = 7;
+    posDataPtr->pdop = 7000;
     posDataPtr->leapSecondsValid = true;
     posDataPtr->leapSeconds = 30;
     posDataPtr->gdopValid = true;
-    posDataPtr->gdop = 8;
+    posDataPtr->gdop = 8000;
     posDataPtr->tdopValid = true;
-    posDataPtr->tdop = 9;
+    posDataPtr->tdop = 9000;
 
     posDataPtr->satMeasValid = true;
     for (i=0; i<LE_GNSS_SV_INFO_MAX_LEN; i++)
@@ -1047,6 +1047,40 @@ le_result_t pa_gnss_GetMinElevation
 )
 {
     return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get original DOP values received from platform adaptor.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_gnssSimu_GetDOPValue
+(
+    le_gnss_DopType_t dopType,
+    uint16_t* dop
+)
+{
+    switch (dopType)
+    {
+        case LE_GNSS_PDOP:
+            *dop = GnssPositionData.pdop;
+            break;
+        case LE_GNSS_HDOP:
+            *dop = GnssPositionData.hdop;
+            break;
+        case LE_GNSS_VDOP:
+            *dop = GnssPositionData.vdop;
+            break;
+        case LE_GNSS_GDOP:
+            *dop = GnssPositionData.gdop;
+            break;
+        case LE_GNSS_TDOP:
+            *dop = GnssPositionData.tdop;
+            break;
+        case LE_GNSS_DOP_LAST:
+        default:
+            break;
+    }
 }
 
 //--------------------------------------------------------------------------------------------------

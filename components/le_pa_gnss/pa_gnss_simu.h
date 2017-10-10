@@ -30,4 +30,14 @@ void pa_gnssSimu_SetGnssValidPositionData
     void
 );
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get original DOP values received from platform adaptor.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_gnssSimu_GetDOPValue
+(
+    le_gnss_DopType_t dopType,
+    uint16_t* dop
+);
 #endif
