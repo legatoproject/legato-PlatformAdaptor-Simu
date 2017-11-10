@@ -15,6 +15,7 @@ sources:
     ${LEGATO_ROOT}/components/modemServices/modemDaemon/smsPdu.c
     ${LEGATO_ROOT}/components/modemServices/modemDaemon/cdmaPdu.c
     pa_riPin_simu.c
+    pa_lpt_simu.c
 }
 
 cflags:
@@ -44,5 +45,6 @@ requires:
         le_antenna.api  [types-only]
         le_adc.api      [types-only]
         le_rtc.api      [types-only]
+        le_lpt.api      [types-only]
     }
 }
