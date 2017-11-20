@@ -13,6 +13,13 @@
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Minimum signal delta for RAT TD-SCDMA.
+ */
+//--------------------------------------------------------------------------------------------------
+#define MIN_SIGNAL_DELTA_FOR_TDSCDMA  10
+
+//--------------------------------------------------------------------------------------------------
+/**
  * The internal current RAT setting
  */
 //--------------------------------------------------------------------------------------------------
@@ -994,15 +1001,24 @@ le_result_t pa_mrc_SetSignalStrengthIndDelta
     uint16_t     delta   ///< [IN] Signal delta in units of 0.1 dB
 )
 {
+    if (!delta)
+    {
+        return LE_BAD_PARAMETER;
+    }
+
     switch(rat)
     {
         case LE_MRC_RAT_GSM:
         case LE_MRC_RAT_UMTS:
-        case LE_MRC_RAT_TDSCDMA:
         case LE_MRC_RAT_LTE:
         case LE_MRC_RAT_CDMA:
             break;
-
+        case LE_MRC_RAT_TDSCDMA:
+            if (delta < MIN_SIGNAL_DELTA_FOR_TDSCDMA)
+            {
+               return LE_BAD_PARAMETER;
+            }
+            break;
         case LE_MRC_RAT_UNKNOWN:
         default:
             LE_ERROR("Bad parameter!");
