@@ -173,7 +173,6 @@ static void InitializeValidGnssPositionData
     posDataPtr->vSpeed = 50;
     posDataPtr->vUncertaintyValid = true;
     posDataPtr->vUncertainty = 100;
-    posDataPtr->vUncertainty = 20;
     posDataPtr->pdopValid = true;
     posDataPtr->pdop = 7;
     posDataPtr->leapSecondsValid = true;
