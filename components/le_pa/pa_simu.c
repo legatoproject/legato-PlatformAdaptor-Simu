@@ -19,6 +19,7 @@
 #include "pa_info_simu.h"
 #include "pa_temp.h"
 #include "pa_antenna.h"
+#include "pa_lpt_simu.h"
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -59,4 +60,7 @@ COMPONENT_INIT
 
     res = pa_antenna_Init();
     LE_FATAL_IF(res != LE_OK, "PA Antenna Failed");
+
+    res = pa_lptSimu_Init();
+    LE_FATAL_IF(res != LE_OK, "PA LPT Failed");
 }
