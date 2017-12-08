@@ -854,7 +854,8 @@ int32_t pa_mrc_GetNeighborCellsInfo
 )
 {
     // TODO: implement this function
-    return LE_FAULT;
+    // No neighbours cells.
+    return 0;
 }
 
 //--------------------------------------------------------------------------------------------------
