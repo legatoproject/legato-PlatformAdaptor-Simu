@@ -17,10 +17,19 @@
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Path of the database on the filesystem.
+ */
+//--------------------------------------------------------------------------------------------------
+#ifndef SECSTORE_RECORD_PATH
+# define SECSTORE_RECORD_PATH "/legato/systems/current/config/secStore.raw"
+#endif
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Structure that holds the information associated with an item stored in the secure storage.
  */
 //--------------------------------------------------------------------------------------------------
-typedef struct {
+typedef struct __attribute__((packed)) {
     char path[SECSTOREADMIN_MAX_PATH_BYTES];
     size_t size;
     uint8_t data[LE_SECSTORE_MAX_ITEM_SIZE];
@@ -60,6 +69,13 @@ static const size_t TotalSize = 8192;
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Flag to tell if a filesystem loading is in progress or not.
+ */
+//--------------------------------------------------------------------------------------------------
+static bool FsLoadInProgress = false;
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Set the path of an entry.
  */
 //--------------------------------------------------------------------------------------------------
@@ -87,6 +103,134 @@ static void DeleteEntry
 {
     entryPtr->isAvailable = false;
 }
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Load entries from the file system.
+ */
+//--------------------------------------------------------------------------------------------------
+static void LoadFileSystemEntries(void)
+{
+    LE_INFO("Loading secStore from " SECSTORE_RECORD_PATH);
+
+    FsLoadInProgress = true;
+
+    int fd = open(SECSTORE_RECORD_PATH, O_RDONLY | O_NONBLOCK);
+    if (fd < 0)
+    {
+        LE_WARN("Unable to open " SECSTORE_RECORD_PATH);
+        return;
+    }
+
+    SecureStorageEntry_t entryBuffer;
+    size_t entryBufferPos = 0;
+
+    while(true)
+    {
+        ssize_t readSz = 0;
+        readSz = read(fd,
+                      (uint8_t*)&(entryBuffer) + entryBufferPos,
+                      sizeof(entryBuffer) - entryBufferPos);
+        if (readSz < 0)
+        {
+            if (errno != EINTR)
+            {
+                continue;
+            }
+
+            LE_FATAL("There was an error reading " SECSTORE_RECORD_PATH ": %m");
+        }
+        if (readSz == 0)
+        {
+            LE_ASSERT(entryBufferPos == 0);
+            break;
+        }
+
+        entryBufferPos += readSz;
+        if (readSz < sizeof(entryBuffer))
+        {
+            continue;
+        }
+
+        LE_ASSERT(entryBufferPos <= sizeof(entryBuffer));
+        LE_ASSERT(entryBuffer.isAvailable == true);
+
+        LE_DEBUG("Loaded ... %s %zd", entryBuffer.path,
+                                      entryBuffer.size);
+
+        // Load the entry in memory
+        pa_secStore_Write(entryBuffer.path,
+                          entryBuffer.data,
+                          entryBuffer.size);
+
+        entryBufferPos = 0;
+    }
+
+    close(fd);
+
+    FsLoadInProgress = false;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Store all entries on the file system.
+ */
+//--------------------------------------------------------------------------------------------------
+static void StoreFileSystemEntries(void)
+{
+    if (FsLoadInProgress)
+    {
+        return;
+    }
+
+    int fd = open(SECSTORE_RECORD_PATH, O_WRONLY | O_CREAT | O_TRUNC);
+    if (fd < 0)
+    {
+        LE_ERROR("Unable to open/create " SECSTORE_RECORD_PATH);
+        return;
+    }
+
+    SecureStorageEntry_t *entryPtr = NULL;
+    le_hashmap_It_Ref_t iter;
+    ssize_t writeSz = 0;
+
+    /* Iterate through entries */
+    iter = le_hashmap_GetIterator(Entries);
+    while (LE_OK == le_hashmap_NextNode(iter))
+    {
+        if (writeSz >= 0)
+        {
+            entryPtr = (SecureStorageEntry_t*)le_hashmap_GetValue(iter);
+        }
+
+        LE_ASSERT(entryPtr);
+
+        if (!(entryPtr->isAvailable))
+        {
+            // Do not save unavailable entries
+            LE_DEBUG("Discarding %s", entryPtr->path);
+            continue;
+        }
+
+        LE_DEBUG("Saving %s", entryPtr->path);
+        writeSz = write(fd, entryPtr, sizeof(SecureStorageEntry_t));
+        if (writeSz < 0)
+        {
+            if (errno == EINTR)
+            {
+                // Retry to write the same entry on the next loop
+                continue;
+            }
+
+            LE_FATAL("Unable to write " SECSTORE_RECORD_PATH ": %m");
+        }
+
+        LE_ASSERT(writeSz == sizeof(SecureStorageEntry_t));
+    }
+
+    close(fd);
+}
+
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -180,6 +324,7 @@ LE_SHARED le_result_t pa_secStore_Write
     {
         LE_INFO("Write new entry");
         entryPtr = (SecureStorageEntry_t*)le_mem_ForceAlloc(EntriesPool);
+        memset(entryPtr, 0xFF, sizeof(SecureStorageEntry_t));
         SetEntryPath(entryPtr, pathPtr);
         le_hashmap_Put(Entries, entryPtr->path, entryPtr);
     }
@@ -188,6 +333,9 @@ LE_SHARED le_result_t pa_secStore_Write
     entryPtr->size = bufSize;
     memcpy(entryPtr->data, bufPtr, bufSize);
     entryPtr->isAvailable = true;
+
+    // Save on disk
+    StoreFileSystemEntries();
 
     return LE_OK;
 }
@@ -295,6 +443,9 @@ LE_SHARED le_result_t pa_secStore_Delete
 
     DeleteEntry(entryPtr);
 
+    // Save on disk
+    StoreFileSystemEntries();
+
     return LE_OK;
 }
 
@@ -332,6 +483,7 @@ LE_SHARED le_result_t pa_secStore_GetSize
     }
 
     *sizePtr = entryPtr->size;
+
     return LE_OK;
 }
 
@@ -470,17 +622,23 @@ LE_SHARED le_result_t pa_secStore_Move
     // 'Move' entry
     SetEntryPath(entryPtr, destPathPtr);
 
+    // Save on disk
+    StoreFileSystemEntries();
+
     return LE_OK;
 }
 
 COMPONENT_INIT
 {
-    // Create hashmap to associate entries to data
+    // Create a hashmap to associate entries to data
     Entries = le_hashmap_Create("secStoreEntries", 0,
                                 le_hashmap_HashString,
                                 le_hashmap_EqualsString);
 
-    // Create memory pool to store the data
+    // Create a memory pool to store the data
     EntriesPool = le_mem_CreatePool("secStoreEntriesPool", sizeof(SecureStorageEntry_t));
+
+    // Load from file system
+    LoadFileSystemEntries();
 }
 
