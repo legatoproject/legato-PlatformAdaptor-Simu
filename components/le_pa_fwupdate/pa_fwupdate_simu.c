@@ -85,6 +85,27 @@ static pa_fwupdate_System_t SystemSet[PA_FWUPDATE_SUBSYSID_MAX] =
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Internal partition table of the allowed partition managed.
+ */
+//--------------------------------------------------------------------------------------------------
+static pa_fwupdate_MtdPartition_t MtdPartTab[] =
+{
+    { NULL, { NULL, NULL }, 0, false, },
+};
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * UBI volume names, suffixes and ID. The array is terminated by the two fields ubiVolName and
+ * ubiVolSuffix set to NULL.
+ */
+//--------------------------------------------------------------------------------------------------
+static pa_fwupdate_UbiVolume_t UbiVolumeTab[] =
+{
+    { NULL, NULL, 255, },
+};
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Set the stub return code.
  */
 //--------------------------------------------------------------------------------------------------
@@ -771,6 +792,83 @@ void pa_fwupdate_StopBadImageIndication
 )
 {
     return;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function requests the access to flash update
+ *
+ * @return
+ *      - LE_OK            The access is granted to fwupdate and update can begin
+ *      - LE_UNAVAILABLE   The access is not granted because flash is in use
+ *      - LE_FAULT         If an error occurs
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_fwupdate_RequestUpdate
+(
+    void
+)
+{
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function releases the access to flash update
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_fwupdate_CompleteUpdate
+(
+    void
+)
+{
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the MTD partition table
+ *
+ * @return
+ *      - LE_OK            on success
+ *      - LE_BAD_PARAMETER if mtdPartPtr is NULL
+ *      - LE_FAULT         on other errors
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_fwupdate_GetMtdPartitionTab
+(
+    pa_fwupdate_MtdPartition_t **mtdPartPtr
+)
+{
+    if (NULL == mtdPartPtr)
+    {
+        return LE_BAD_PARAMETER;
+    }
+    *mtdPartPtr = MtdPartTab;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the UBI generic name, volume suffix and volume ID
+ *
+ * @return
+ *      - LE_OK            on success
+ *      - LE_BAD_PARAMETER if ubiVolumeTabPtr is NULL
+ *      - LE_FAULT         on other errors
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_fwupdate_GetUbiVolumeTab
+(
+    pa_fwupdate_UbiVolume_t **ubiVolumeTabPtr
+)
+{
+    if (NULL == ubiVolumeTabPtr)
+    {
+        return LE_BAD_PARAMETER;
+    }
+    *ubiVolumeTabPtr = UbiVolumeTab;
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------

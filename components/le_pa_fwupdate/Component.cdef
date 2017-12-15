@@ -9,6 +9,7 @@ requires:
 sources:
 {
     pa_fwupdate_simu.c
+    pa_flash_simu.c
 }
 
 cflags:
