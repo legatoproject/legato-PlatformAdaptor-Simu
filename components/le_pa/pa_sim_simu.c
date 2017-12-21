@@ -43,6 +43,9 @@ static pa_sim_NewStateHdlrFunc_t SimStateHandler;
 static le_mem_PoolRef_t SimStateEventPool;
 static bool SimAccessTest = false;
 static pa_sim_MobileCode_t FPLMNOperator[MAX_FPLMN_OPERATOR];
+static le_sim_StkEvent_t StkEvent = LE_SIM_STK_EVENT_MAX;
+static le_sim_StkRefreshMode_t StkRefreshMode = LE_SIM_REFRESH_MODE_MAX;
+static le_sim_StkRefreshStage_t StkRefreshStage = LE_SIM_STAGE_MAX;
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -279,6 +282,33 @@ static void SetStateFromString
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Set the STK refresh mode.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_SetRefreshMode
+(
+    le_sim_StkRefreshMode_t mode
+)
+{
+    StkRefreshMode = mode;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the STK refresh stage.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_SetRefreshStage
+(
+    le_sim_StkRefreshStage_t stage
+)
+{
+    StkRefreshStage = stage;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Report the STK event.
  */
 //--------------------------------------------------------------------------------------------------
@@ -287,9 +317,13 @@ void pa_simSimu_ReportSTKEvent
     le_sim_StkEvent_t  leSTKEvent
 )
 {
+    StkEvent = leSTKEvent;
+
     pa_sim_StkEvent_t  paSTKEvent;
     paSTKEvent.simId = SelectedCard;
     paSTKEvent.stkEvent = leSTKEvent;
+    paSTKEvent.stkRefreshStage = StkRefreshStage;
+    paSTKEvent.stkRefreshMode = StkRefreshMode;
 
     le_event_Report(SimToolkitEvent, &paSTKEvent, sizeof(paSTKEvent));
 }
@@ -1304,6 +1338,34 @@ le_result_t pa_sim_ReadFPLMNOperators
         le_utf8_Copy(FPLMNOperatorPtr[i].mobileCode.mnc, FPLMNOperator[i].mnc, LE_MRC_MNC_BYTES,
                      NULL);
     }
+
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Retrieve the last SIM Toolkit status.
+ *
+ * @return
+ *      - LE_OK             On success.
+ *      - LE_BAD_PARAMETER  A parameter is invalid.
+ *      - LE_UNSUPPORTED    The platform does not support this operation.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sim_GetLastStkStatus
+(
+    pa_sim_StkEvent_t*  stkStatus  ///< [OUT] last SIM Toolkit event status
+)
+{
+    if (NULL == stkStatus)
+    {
+        return LE_BAD_PARAMETER;
+    }
+
+    stkStatus->simId = SelectedCard;
+    stkStatus->stkEvent = StkEvent;
+    stkStatus->stkRefreshMode = StkRefreshMode;
+    stkStatus->stkRefreshStage = StkRefreshStage;
 
     return LE_OK;
 }
