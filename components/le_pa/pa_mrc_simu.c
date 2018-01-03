@@ -806,8 +806,9 @@ le_result_t pa_mrc_GetLteBandPreferences
  * Set the TD-SCDMA Band Preferences
  *
  * @return
- * - LE_OK              on success
- * - LE_FAULT           on failure
+ * - LE_OK           On success
+ * - LE_FAULT        On failure
+ * - LE_UNSUPPORTED  The platform doesn't support setting TD-SCDMA Band preferences.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_SetTdScdmaBandPreferences
@@ -824,8 +825,9 @@ le_result_t pa_mrc_SetTdScdmaBandPreferences
  * Get the TD-SCDMA Band Preferences
  *
  * @return
- * - LE_OK              on success
- * - LE_FAULT           on failure
+ * - LE_OK           On success
+ * - LE_FAULT        On failure
+ * - LE_UNSUPPORTED  The platform doesn't support getting TD-SCDMA Band preferences.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetTdScdmaBandPreferences
