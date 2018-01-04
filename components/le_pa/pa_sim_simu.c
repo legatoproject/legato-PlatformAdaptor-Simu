@@ -1016,6 +1016,13 @@ le_result_t pa_sim_OpenLogicalChannel
     uint8_t* channelPtr  ///< [OUT] channel number
 )
 {
+    if (!channelPtr)
+    {
+        LE_ERROR("No channel pointer");
+        return LE_FAULT;
+    }
+
+    *channelPtr = 1;
     return LE_OK;
 }
 
