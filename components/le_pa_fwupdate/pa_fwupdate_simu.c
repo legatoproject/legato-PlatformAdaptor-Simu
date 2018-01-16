@@ -95,17 +95,6 @@ static pa_fwupdate_MtdPartition_t MtdPartTab[] =
 
 //--------------------------------------------------------------------------------------------------
 /**
- * UBI volume names, suffixes and ID. The array is terminated by the two fields ubiVolName and
- * ubiVolSuffix set to NULL.
- */
-//--------------------------------------------------------------------------------------------------
-static pa_fwupdate_UbiVolume_t UbiVolumeTab[] =
-{
-    { NULL, NULL, 255, },
-};
-
-//--------------------------------------------------------------------------------------------------
-/**
  * Set the stub return code.
  */
 //--------------------------------------------------------------------------------------------------
@@ -845,29 +834,6 @@ le_result_t pa_fwupdate_GetMtdPartitionTab
         return LE_BAD_PARAMETER;
     }
     *mtdPartPtr = MtdPartTab;
-    return LE_OK;
-}
-
-//--------------------------------------------------------------------------------------------------
-/**
- * Get the UBI generic name, volume suffix and volume ID
- *
- * @return
- *      - LE_OK            on success
- *      - LE_BAD_PARAMETER if ubiVolumeTabPtr is NULL
- *      - LE_FAULT         on other errors
- */
-//--------------------------------------------------------------------------------------------------
-le_result_t pa_fwupdate_GetUbiVolumeTab
-(
-    pa_fwupdate_UbiVolume_t **ubiVolumeTabPtr
-)
-{
-    if (NULL == ubiVolumeTabPtr)
-    {
-        return LE_BAD_PARAMETER;
-    }
-    *ubiVolumeTabPtr = UbiVolumeTab;
     return LE_OK;
 }
 
