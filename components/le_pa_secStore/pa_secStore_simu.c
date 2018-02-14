@@ -183,7 +183,7 @@ static void StoreFileSystemEntries(void)
         return;
     }
 
-    int fd = open(SECSTORE_RECORD_PATH, O_WRONLY | O_CREAT | O_TRUNC);
+    int fd = open(SECSTORE_RECORD_PATH, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (fd < 0)
     {
         LE_ERROR("Unable to open/create " SECSTORE_RECORD_PATH);
