@@ -1280,3 +1280,41 @@ void pa_mrc_RemoveNetworkRejectIndHandler
 {
     le_event_RemoveHandler(handlerRef);
 }
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function activates or deactivates jamming detection notification.
+ *
+ * * @return
+ *      - LE_OK on success
+ *      - LE_FAULT on failure
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_SetJammingDetection
+(
+    bool activation     ///< [IN] Notification activation request
+)
+{
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to register a handler to report jamming detection notification.
+ *
+ * @return A handler reference, which is only needed for later removal of the handler.
+ *
+ * @note Doesn't return on failure, so there's no need to check the return value for errors.
+ */
+//--------------------------------------------------------------------------------------------------
+le_event_HandlerRef_t pa_mrc_AddJammingDetectionIndHandler
+(
+    pa_mrc_JammingDetectionHandlerFunc_t jammingDetectionIndHandler, ///< [IN] The handler function
+                                                                     ///  to handle jamming
+                                                                     ///  detection indication.
+    void*                               contextPtr                   ///< [IN] The context to be
+                                                                     ///  given to the handler.
+)
+{
+    return NULL;
+}
