@@ -74,6 +74,33 @@ static le_gnss_NmeaBitMask_t NmeaBitMask = LE_GNSS_NMEA_MASK_GPGGA;
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Multiplying factor accuracy
+ */
+//--------------------------------------------------------------------------------------------------
+#define ONE_DECIMAL_PLACE_ACCURACY   (10)
+#define TWO_DECIMAL_PLACE_ACCURACY   (100)
+#define THREE_DECIMAL_PLACE_ACCURACY (1000)
+#define SIX_DECIMAL_PLACE_ACCURACY   (1000000)
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Inline function to convert and round to the nearest
+ *
+ * The function firstly converts the float value to int according to the requested place after the
+ * decimal given by place parameter. Secondly, a round to the nearest is done the int value.
+ */
+//--------------------------------------------------------------------------------------------------
+static inline int32_t ConvertAndRoundToNearest
+(
+    float value,     ///< [IN] value to round to the nearest
+    int32_t place    ///< [IN] the place after the decimal in power of 10
+)
+{
+    return (int32_t)((int64_t)((place*value*10) + ((value > 0) ? 5 : -5))/10);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * GNSS position default pointer initialization.
  */
 //--------------------------------------------------------------------------------------------------
@@ -326,6 +353,91 @@ void pa_gnssSimu_SetGnssValidPositionData
     InitializeValidGnssPositionData(&GnssPositionData);
     InitializeValidSatInfo(&GnssPositionData);
     InitializeValidSatUsedInfo(&GnssPositionData);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function tests the rounding to the nearest of different position values
+ *
+ * @return LE_FAULT         The function failed
+ * @return LE_OK            The function succeeded.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_gnssSimu_RoundingPositionValues
+(
+    void
+)
+{
+    if (0 != ConvertAndRoundToNearest(0.0, SIX_DECIMAL_PLACE_ACCURACY))
+    {
+        LE_INFO("step 1");
+        return LE_FAULT;
+    }
+
+    LE_INFO("eric");
+    LE_DEBUG("lena");
+
+
+    if (2565656 != ConvertAndRoundToNearest(2.5656563, SIX_DECIMAL_PLACE_ACCURACY))
+    {
+        LE_INFO("step 2");
+        return LE_FAULT;
+    }
+    if (2565657 != ConvertAndRoundToNearest(2.5656566, SIX_DECIMAL_PLACE_ACCURACY))
+    {
+        LE_INFO("step 3");
+        return LE_FAULT;
+    }
+    if (2565650 != ConvertAndRoundToNearest(2.565650, SIX_DECIMAL_PLACE_ACCURACY))
+    {
+        LE_INFO("step 4");
+        return LE_FAULT;
+    }
+    if (2565600 != ConvertAndRoundToNearest(2.5656, SIX_DECIMAL_PLACE_ACCURACY))
+    {
+        LE_INFO("step 5");
+        return LE_FAULT;
+    }
+    if (100565657 != ConvertAndRoundToNearest(100.5656566, SIX_DECIMAL_PLACE_ACCURACY))
+    {
+        LE_INFO("step 6");
+        return LE_FAULT;
+    }
+    if (100700000 != ConvertAndRoundToNearest(100.7, SIX_DECIMAL_PLACE_ACCURACY))
+    {
+        LE_INFO("step 7");
+        return LE_FAULT;
+    }
+    if (-2565656 != ConvertAndRoundToNearest(-2.5656563, SIX_DECIMAL_PLACE_ACCURACY))
+    {
+        LE_INFO("step 8");
+        return LE_FAULT;
+    }
+    if (-2565657 != ConvertAndRoundToNearest(-2.5656566, SIX_DECIMAL_PLACE_ACCURACY))
+    {
+        LE_INFO("step 9");
+        return LE_FAULT;
+    }
+    if (-100565657 != ConvertAndRoundToNearest(-100.5656566, SIX_DECIMAL_PLACE_ACCURACY))
+    {
+        LE_INFO("step 10");
+        return LE_FAULT;
+    }
+    if (-100566 != ConvertAndRoundToNearest(-100.5656566, THREE_DECIMAL_PLACE_ACCURACY))
+    {
+        LE_INFO("step 11");
+        return LE_FAULT;
+    }
+    if (-10007 != ConvertAndRoundToNearest(-100.06566, TWO_DECIMAL_PLACE_ACCURACY))
+    {
+        LE_INFO("step 12");
+        return LE_FAULT;
+    }
+    if (1001 != ConvertAndRoundToNearest(100.06566, ONE_DECIMAL_PLACE_ACCURACY))
+    {
+        return LE_FAULT;
+    }
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
