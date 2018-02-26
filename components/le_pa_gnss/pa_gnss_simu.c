@@ -374,10 +374,6 @@ le_result_t pa_gnssSimu_RoundingPositionValues
         return LE_FAULT;
     }
 
-    LE_INFO("eric");
-    LE_DEBUG("lena");
-
-
     if (2565656 != ConvertAndRoundToNearest(2.5656563, SIX_DECIMAL_PLACE_ACCURACY))
     {
         LE_INFO("step 2");
