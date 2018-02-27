@@ -47,6 +47,7 @@ static le_sim_StkEvent_t StkEvent = LE_SIM_STK_EVENT_MAX;
 static le_sim_StkRefreshMode_t StkRefreshMode = LE_SIM_REFRESH_MODE_MAX;
 static le_sim_StkRefreshStage_t StkRefreshStage = LE_SIM_STAGE_MAX;
 static le_sem_Ref_t SyncSemaphore = NULL;
+static le_onoff_t SimPower;
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -120,6 +121,36 @@ static const simuConfig_Service_t ConfigService = {
     PA_SIMU_CFG_MODEM_ROOT "/sim",
     ConfigProperties
 };
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Powers up or down the current SIM card.
+ *
+ * @return
+ *      - LE_OK           On success
+ *      - LE_FAULT        For unexpected error
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sim_SetPower
+(
+    le_onoff_t power     ///< [IN] The power state.
+)
+{
+    if (LE_ON == power)
+    {
+        SimPower = LE_ON;
+        return LE_OK;
+    }
+    else if (LE_OFF == power)
+    {
+        SimPower = LE_OFF;
+        return LE_OK;
+    }
+    else
+    {
+        return LE_FAULT;
+    }
+}
 
 //--------------------------------------------------------------------------------------------------
 /**
