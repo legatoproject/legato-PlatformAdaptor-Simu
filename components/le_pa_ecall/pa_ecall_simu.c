@@ -27,6 +27,7 @@ static char                 PsapNumber[LE_MDMDEFS_PHONE_NUM_MAX_LEN] = PA_SIMU_E
 static le_ecall_MsdTxMode_t MsdTxMode = PA_SIMU_ECALL_DEFAULT_MSD_TX_MODE;
 static uint8_t              MsdData[MSD_BLOB_SIZE];
 static uint16_t             NadDeregistrationTime = 120;
+static uint16_t             FallbackTime = 60;
 static le_ecall_OpMode_t    OperationMode = LE_ECALL_NORMAL_MODE;
 
 //--------------------------------------------------------------------------------------------------
@@ -330,5 +331,43 @@ le_result_t pa_ecall_GetNadDeregistrationTime
 )
 {
     *deregTimePtr = NadDeregistrationTime;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the 'ECALL_CCFT' value in minutes.
+ *
+ * @return
+ *  - LE_OK on success
+ *  - LE_FAULT on failure
+ *  - LE_UNSUPPORTED if the function is not supported by the target
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_ecall_SetEraGlonassFallbackTime
+(
+    uint16_t    duration  ///< [IN] the ECALL_CCFT time value in minutes.
+)
+{
+    FallbackTime = duration;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the 'ECALL_CCFT' value in minutes.
+ *
+ * @return
+ *  - LE_OK on success
+ *  - LE_FAULT on failure
+ *  - LE_UNSUPPORTED if the function is not supported by the target
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_ecall_GetEraGlonassFallbackTime
+(
+    uint16_t*    durationPtr  ///< [OUT] the ECALL_CCFT time value in minutes.
+)
+{
+    *durationPtr = FallbackTime;
     return LE_OK;
 }
