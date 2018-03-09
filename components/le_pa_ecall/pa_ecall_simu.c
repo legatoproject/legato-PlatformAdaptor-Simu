@@ -28,6 +28,8 @@ static le_ecall_MsdTxMode_t MsdTxMode = PA_SIMU_ECALL_DEFAULT_MSD_TX_MODE;
 static uint8_t              MsdData[MSD_BLOB_SIZE];
 static uint16_t             NadDeregistrationTime = 120;
 static uint16_t             FallbackTime = 60;
+static uint16_t             AutoAnswerTime = 20;
+static uint16_t             MSDMaxTransTime = 60;
 static le_ecall_OpMode_t    OperationMode = LE_ECALL_NORMAL_MODE;
 
 //--------------------------------------------------------------------------------------------------
@@ -369,5 +371,93 @@ le_result_t pa_ecall_GetEraGlonassFallbackTime
 )
 {
     *durationPtr = FallbackTime;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the 'ECALL_AUTO_ANSWER_TIME' value in minutes.
+ *
+ * @return
+ *  - LE_OK on success
+ *  - LE_FAULT on failure
+ *  - LE_UNSUPPORTED if the function is not supported by the target
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_ecall_SetEraGlonassAutoAnswerTime
+(
+    uint16_t autoAnswerTime  ///< [IN] the ECALL_AUTO_ANSWER_TIME time value in minutes.
+)
+{
+    AutoAnswerTime = autoAnswerTime;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the 'ECALL_AUTO_ANSWER_TIME' value in minutes.
+ *
+ * @return
+ *  - LE_OK on success
+ *  - LE_FAULT on failure
+ *  - LE_UNSUPPORTED if the function is not supported by the target
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_ecall_GetEraGlonassAutoAnswerTime
+(
+    uint16_t* autoAnswerTimePtr  ///< [OUT] the ECALL_AUTO_ANSWER_TIME time value in minutes.
+)
+{
+    if (NULL == autoAnswerTimePtr)
+    {
+        LE_ERROR("autoAnswerTimePtr is NULL!");
+        return LE_FAULT;
+    }
+
+    *autoAnswerTimePtr = AutoAnswerTime;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the ECALL_MSD_MAX_TRANSMISSION_TIME time. It is a time period for MSD transmission.
+ *
+ * @return
+ *  - LE_OK on success
+ *  - LE_FAULT on failure
+ *  - LE_UNSUPPORTED if the function is not supported by the target
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_ecall_SetEraGlonassMSDMaxTransmissionTime
+(
+    uint16_t msdMaxTransTime ///< [IN] ECALL_MSD_MAX_TRANSMISSION_TIME time value (in seconds)
+)
+{
+    MSDMaxTransTime = msdMaxTransTime;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the ECALL_MSD_MAX_TRANSMISSION_TIME time.
+ *
+ * @return
+ *  - LE_OK on success
+ *  - LE_FAULT on failure
+ *  - LE_UNSUPPORTED if the function is not supported by the target
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_ecall_GetEraGlonassMSDMaxTransmissionTime
+(
+    uint16_t* msdMaxTransTimePtr ///< [OUT] ECALL_MSD_MAX_TRANSMISSION_TIME time value (in seconds)
+)
+{
+    if (NULL == msdMaxTransTimePtr)
+    {
+        LE_ERROR("msdMaxTransTimePtr is NULL!");
+        return LE_FAULT;
+    }
+
+    *msdMaxTransTimePtr = MSDMaxTransTime;
     return LE_OK;
 }
