@@ -46,6 +46,7 @@ static pa_sim_MobileCode_t FPLMNOperator[MAX_FPLMN_OPERATOR];
 static le_sim_StkEvent_t StkEvent = LE_SIM_STK_EVENT_MAX;
 static le_sim_StkRefreshMode_t StkRefreshMode = LE_SIM_REFRESH_MODE_MAX;
 static le_sim_StkRefreshStage_t StkRefreshStage = LE_SIM_STAGE_MAX;
+static le_sem_Ref_t SyncSemaphore = NULL;
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -1154,6 +1155,56 @@ le_result_t pa_sim_RemoveSimToolkitEventHandler
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * This function creates a semaphore that should be used to wait for an STK confirmation call
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_CreateSempahoreForSTKConfirmation
+(
+    void
+)
+{
+    if (NULL == SyncSemaphore)
+    {
+        SyncSemaphore = le_sem_Create("SyncSemaphore", 0);
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function deletes the semaphore used in STK confirmation
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_DeleteSempahoreForSTKConfirmation
+(
+    void
+)
+{
+    if (SyncSemaphore)
+    {
+        le_sem_Delete(SyncSemaphore);
+        SyncSemaphore = NULL;
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function  waits for an STK confirmation call. This function requires a semaphore to be
+ * created by calling pa_simSimu_CreateSempahoreForSTKConfirmation()
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_WaitForSTKConfirmation
+(
+    void
+)
+{
+    if (SyncSemaphore)
+    {
+        le_sem_Wait(SyncSemaphore);
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * This function must be called to set the expected confirmation command.
  *
  */
@@ -1181,6 +1232,11 @@ le_result_t pa_sim_ConfirmSimToolkitCommand
 )
 {
     LE_ASSERT(STKConfirmation == confirmation);
+
+    if (NULL != SyncSemaphore)
+    {
+        le_sem_Post(SyncSemaphore);
+    }
 
     return LE_OK;
 }

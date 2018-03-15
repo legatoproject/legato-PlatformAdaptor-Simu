@@ -66,6 +66,37 @@ void pa_simSimu_SetHomeNetworkMnc
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * This function creates a semaphore that should be used to wait for an STK confirmation call
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_CreateSempahoreForSTKConfirmation
+(
+    void
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function deletes the semaphore used in STK confirmation
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_DeleteSempahoreForSTKConfirmation
+(
+    void
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function  waits for an STK confirmation call. This function requires a semaphore to be
+ * created by calling pa_simSimu_CreateSempahoreForSTKConfirmation()
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_simSimu_WaitForSTKConfirmation
+(
+    void
+);
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Report the SIM state.
  */
 //--------------------------------------------------------------------------------------------------
