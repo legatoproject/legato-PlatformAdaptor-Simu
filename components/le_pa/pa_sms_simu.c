@@ -76,6 +76,7 @@ static int NumberSmsInStorageNv=0;
 static int NumberSmsInStorageSim=0;
 static int NumberSmsInStorageNone=0;
 static int SmsSendErrorCause;
+static char SMSMessageReference=0;
 
 #define  PA_SMS_SIMU_3GPP_BROADCAST_CONFIG_MAX    50
 #define  PA_SMS_SIMU_3GPP2_BROADCAST_CONFIG_MAX   50
@@ -380,18 +381,20 @@ void pa_sms_RemoveStorageStatusHandler
 /**
  * This function sends a message in PDU mode.
  *
+ * @return LE_OK              The function succeeded.
  * @return LE_NOT_POSSIBLE    The function failed to send a message in PDU mode.
  * @return LE_TIMEOUT         No response was received from the Modem.
  * @return a positive value   The function succeeded. The value represents the message reference.
  */
 //--------------------------------------------------------------------------------------------------
-int32_t pa_sms_SendPduMsg
+le_result_t pa_sms_SendPduMsg
 (
     pa_sms_Protocol_t        protocol,   ///< [IN] protocol to use
     uint32_t                 length,     ///< [IN] The length of the TP data unit in bytes.
-    const uint8_t           *dataPtr,    ///< [IN] The message.
+    const uint8_t*           dataPtr,    ///< [IN] The message.
+    uint8_t*                 msgRef,     ///< [OUT] Message reference (TP-MR)
     uint32_t                 timeout,    ///< [IN] Timeout in seconds.
-    pa_sms_SendingErrCode_t *errorCode   ///< [OUT] The error code.
+    pa_sms_SendingErrCode_t* errorCode   ///< [OUT] The error code.
 )
 {
     le_result_t res;
@@ -427,6 +430,11 @@ int32_t pa_sms_SendPduMsg
     SmsServerHandleLocalMessage( &(txBuffer.header) );
 
     LE_INFO("SmsSendErrorCause %d", SmsSendErrorCause);
+
+    *msgRef = SMSMessageReference;
+
+    // Increment the Message reference (TP-MR).
+    SMSMessageReference++;
 
     // error cause
     return  SmsSendErrorCause;
