@@ -48,6 +48,13 @@ static bool CallWaitingStatus = LE_OFF;
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * The audio AMR Wideband capability
+ */
+//--------------------------------------------------------------------------------------------------
+static bool AmrWbCapState = true;
+
+//--------------------------------------------------------------------------------------------------
+/**
  * simu init
  *
  **/
@@ -307,6 +314,48 @@ le_result_t pa_mcc_ActivateCall
     uint8_t  callId     ///< [IN] The active call ID
 )
 {
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function enable/disable the audio AMR Wideband capability.
+ *
+ * @return
+ *     - LE_OK       The function succeeded.
+ *     - LE_FAULT    The function failed.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mcc_SetAmrWbCapability
+(
+    bool  enable   ///< [IN] True enables the AMR Wideband capability, false disables it.
+)
+{
+    AmrWbCapState = enable;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function gets the audio AMR Wideband capability
+ *
+ * @return
+ *     - LE_OK       The function succeeded.
+ *     - LE_FAULT    The function failed.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mcc_GetAmrWbCapability
+(
+    bool*  enabledPtr   ///< [OUT] True if AMR Wideband capability is enabled, false otherwise.
+)
+{
+    if (NULL == enabledPtr)
+    {
+        LE_ERROR("enabledPtr is Null");
+        return LE_FAULT;
+    }
+
+    *enabledPtr = AmrWbCapState;
     return LE_OK;
 }
 
