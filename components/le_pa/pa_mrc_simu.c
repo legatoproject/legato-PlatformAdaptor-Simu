@@ -93,6 +93,39 @@ static char CurentMncStr[4];
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Static for jamming detection avtivation state
+ */
+//--------------------------------------------------------------------------------------------------
+static pa_mrcSimu_JammingDetection_t JammingActivationState;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Static for jamming pool
+ */
+//--------------------------------------------------------------------------------------------------
+static le_mem_PoolRef_t JammingDetectionIndPool;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Jamming detection reference structure.
+ */
+//--------------------------------------------------------------------------------------------------
+typedef struct
+{
+    le_msg_SessionRef_t sessionRef;     ///< Message session reference
+    le_dls_Link_t       link;           ///< Object node link
+}
+JammingDetectionRef_t;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Static event for jamming detection
+ */
+//--------------------------------------------------------------------------------------------------
+static le_event_Id_t JammingDetectionEventId;
+
+//--------------------------------------------------------------------------------------------------
+/**
  * This function determine if the tupple (rat,mcc,mnc) is currently provided by the simulation.
  */
 //--------------------------------------------------------------------------------------------------
@@ -155,6 +188,88 @@ static void AppendNetworkScanResult
     newScanInformationPtr->isForbidden = false;
 
     le_dls_Queue(scanInformationListPtr, &(newScanInformationPtr->link));
+}
+
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Report jamming detection event.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_mrcSimu_ReportJammingDetection
+(
+    le_mrc_JammingReport_t  report,     ///< Notification type
+    le_mrc_JammingStatus_t  status      ///< Jamming status
+)
+{
+    pa_mrc_JammingDetectionIndication_t* paJammingEvent =
+                                        le_mem_ForceAlloc(JammingDetectionIndPool);
+
+    paJammingEvent->report = report;
+    paJammingEvent->status = status;
+
+    le_event_ReportWithRefCounting(JammingDetectionEventId, paJammingEvent);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * The first-layer jamming detection indication handler.
+ */
+//--------------------------------------------------------------------------------------------------
+static void FirstLayerJammingDetectionIndHandler
+(
+    void*   reportPtr,
+    void*   secondLayerFunc
+)
+{
+    if (NULL == reportPtr)
+    {
+        LE_ERROR("reportPtr is NULL");
+        return;
+    }
+
+    if (NULL == secondLayerFunc)
+    {
+        LE_ERROR("secondLayerFunc is NULL");
+        return;
+    }
+    LE_DEBUG("FirstLayerJammingDetectionIndHandler");
+
+    pa_mrc_JammingDetectionIndication_t* jammingDetectionIndPtr =
+                                   (pa_mrc_JammingDetectionIndication_t*) reportPtr;
+
+    pa_mrc_JammingDetectionHandlerFunc_t handlerFunc =
+                                   (pa_mrc_JammingDetectionHandlerFunc_t) secondLayerFunc;
+
+    handlerFunc(jammingDetectionIndPtr);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the jamming detection activation status
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_mrcSimu_SetJammingDetection
+(
+    pa_mrcSimu_JammingDetection_t activation    ///< [IN] Jamming activation state
+)
+{
+    JammingActivationState = activation;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the jamming detection activation status
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+pa_mrcSimu_JammingDetection_t pa_mrcSimu_GetJammingDetection
+(
+     void
+)
+{
+    return JammingActivationState;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1224,7 +1339,13 @@ le_result_t mrc_simu_Init
     PSChangeEventId = le_event_CreateIdWithRefCounting("PSChangeEvent");
     PSChangePool = le_mem_CreatePool("PSChangePool", sizeof(le_mrc_NetRegState_t));
 
-    ScanInformationPool = le_mem_CreatePool("ScanInformationPool", sizeof(pa_mrc_ScanInformation_t));
+    ScanInformationPool = le_mem_CreatePool("ScanInformationPool",
+                                            sizeof(pa_mrc_ScanInformation_t));
+
+    JammingDetectionIndPool = le_mem_CreatePool("JammingDetectionIndPool",
+                                                  sizeof(pa_mrc_JammingDetectionIndication_t));
+
+    JammingDetectionEventId = le_event_CreateIdWithRefCounting("JammingDetectionInd");
 
     return LE_OK;
 }
@@ -1288,6 +1409,8 @@ void pa_mrc_RemoveNetworkRejectIndHandler
  * * @return
  *      - LE_OK on success
  *      - LE_FAULT on failure
+ *      - LE_DUPLICATE if jamming detection is already activated and an activation is requested
+ *      - LE_UNSUPPORTED if jamming detection is not supported
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_SetJammingDetection
@@ -1295,7 +1418,79 @@ le_result_t pa_mrc_SetJammingDetection
     bool activation     ///< [IN] Notification activation request
 )
 {
-    return LE_OK;
+    le_result_t res;
+    switch(JammingActivationState)
+    {
+        case PA_MRCSIMU_JAMMING_UNSUPPORTED:
+            res = LE_UNSUPPORTED;
+            break;
+
+        case PA_MRCSIMU_JAMMING_ACTIVATED:
+            if (activation)
+            {
+                res = LE_DUPLICATE;
+            }
+            else
+            {
+                // Deactivate Jamming Detection
+                pa_mrcSimu_SetJammingDetection(PA_MRCSIMU_JAMMING_DEACTIVATED);
+                res = LE_OK;
+            }
+            break;
+
+        case PA_MRCSIMU_JAMMING_DEACTIVATED:
+            if (activation)
+            {
+                // Activate Jamming Detection
+                pa_mrcSimu_SetJammingDetection(PA_MRCSIMU_JAMMING_ACTIVATED);
+            }
+            res = LE_OK;
+            break;
+
+        default:
+            res = LE_FAULT;
+            break;
+    }
+    return res;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function returns the jamming detection notification status.
+ *
+ * * @return
+ *      - LE_OK on success
+ *      - LE_BAD_PARAMETER if the parameter is invalid
+ *      - LE_FAULT on failure
+ *      - LE_UNSUPPORTED if jamming detection is not supported or if this request is not supported
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_GetJammingDetection
+(
+    bool* activationPtr     ///< [IN] Notification activation request
+)
+{
+    if (!activationPtr)
+    {
+        return LE_BAD_PARAMETER;
+    }
+
+    switch(JammingActivationState)
+    {
+        case PA_MRCSIMU_JAMMING_UNSUPPORTED:
+            return LE_UNSUPPORTED;
+
+        case PA_MRCSIMU_JAMMING_ACTIVATED:
+            *activationPtr = true;
+            return LE_OK;
+
+        case PA_MRCSIMU_JAMMING_DEACTIVATED:
+            *activationPtr = false;
+            return LE_OK;
+
+        default:
+            return LE_FAULT;
+    }
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1309,12 +1504,26 @@ le_result_t pa_mrc_SetJammingDetection
 //--------------------------------------------------------------------------------------------------
 le_event_HandlerRef_t pa_mrc_AddJammingDetectionIndHandler
 (
-    pa_mrc_JammingDetectionHandlerFunc_t jammingDetectionIndHandler, ///< [IN] The handler function
-                                                                     ///  to handle jamming
-                                                                     ///  detection indication.
-    void*                               contextPtr                   ///< [IN] The context to be
-                                                                     ///  given to the handler.
+    pa_mrc_JammingDetectionHandlerFunc_t handler,   ///< [IN] The handler function to handle jamming
+                                                    ///  detection indication.
+    void*                               contextPtr  ///< [IN] The context to be given to the
+                                                    ///  handler.
 )
 {
-    return NULL;
+    if (NULL != handler)
+    {
+        le_event_HandlerRef_t handlerRef = le_event_AddLayeredHandler(
+                                           "JammingDetectionIndHandler",
+                                           JammingDetectionEventId,
+                                           FirstLayerJammingDetectionIndHandler,
+                                           handler);
+
+        le_event_SetContextPtr(handlerRef, contextPtr);
+
+        return handlerRef;
+    }
+    else
+    {
+        return NULL;
+    }
 }
