@@ -112,6 +112,7 @@ static void InitializeDefaultGnssPositionData
     int i;
     posDataPtr->fixState = LE_GNSS_STATE_FIX_NO_POS;
     posDataPtr->altitudeValid = false;
+    posDataPtr->altitudeAssumedValid = false;
     posDataPtr->altitudeOnWgs84Valid = false;
     posDataPtr->dateValid = false;
     posDataPtr->hdopValid = false;
@@ -156,6 +157,7 @@ static void InitializeValidGnssPositionData
     int i;
     posDataPtr->fixState = LE_GNSS_STATE_FIX_NO_POS;
     posDataPtr->altitudeValid = true;
+    posDataPtr->altitudeAssumed = false;
     posDataPtr->altitude = 10;
     posDataPtr->altitudeOnWgs84Valid = true;
     posDataPtr->altitudeOnWgs84 = 10378;
