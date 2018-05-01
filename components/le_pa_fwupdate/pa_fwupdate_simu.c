@@ -500,6 +500,45 @@ le_result_t pa_fwupdate_GetBootloaderVersion
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Get the app bootloader version string
+ *
+ * @return
+ *      - LE_OK            on success
+ *      - LE_NOT_FOUND     if the version string is not available
+ *      - LE_OVERFLOW      if version string to big to fit in provided buffer
+ *      - LE_BAD_PARAMETER bad parameter
+ *      - LE_UNSUPPORTED   not supported
+ *      - LE_FAULT for any other errors
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_fwupdate_GetAppBootloaderVersion
+(
+    char* versionPtr,        ///< [OUT] Version string
+    size_t versionSize       ///< [IN] Size of version buffer
+)
+{
+    if (!versionPtr)
+    {
+        return LE_BAD_PARAMETER;
+    }
+    if (ReturnCode == LE_OK )
+    {
+        /* Simulate a correct API behavior */
+        if (versionSize > strlen(APP_BOOT_VERSION_UT))
+        {
+            memset(versionPtr, 0, versionSize);
+            strncpy(versionPtr, APP_BOOT_VERSION_UT, strlen(APP_BOOT_VERSION_UT));
+        }
+        else
+        {
+            return LE_OVERFLOW;
+        }
+    }
+    return ReturnCode;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Install the firmware package. On dual system this api performs a swap between active and update
  * systems.
  *
