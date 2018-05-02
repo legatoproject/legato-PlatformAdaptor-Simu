@@ -40,4 +40,16 @@ void pa_gnssSimu_GetDOPValue
     le_gnss_DopType_t dopType,
     uint16_t* dop
 );
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get original accuracy values received from platform adaptor.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_gnssSimu_GetAccuracyValue
+(
+    int32_t* hSpeedUncertainty,
+    int32_t* vSpeedUncertainty,
+    int32_t* vUncertainty
+);
 #endif

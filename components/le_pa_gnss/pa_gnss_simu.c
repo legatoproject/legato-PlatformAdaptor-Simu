@@ -168,7 +168,7 @@ static void InitializeValidGnssPositionData
     posDataPtr->hdopValid = true;
     posDataPtr->hdop = 5000;
     posDataPtr->hSpeedUncertaintyValid = true;
-    posDataPtr->hSpeedUncertainty = 8090;
+    posDataPtr->hSpeedUncertainty = 1000;
     posDataPtr->hSpeedValid = true;
     posDataPtr->hSpeed = 20;
     posDataPtr->hUncertaintyValid = true;
@@ -197,11 +197,11 @@ static void InitializeValidGnssPositionData
     posDataPtr->vdopValid = true;
     posDataPtr->vdop = 6000;
     posDataPtr->vSpeedUncertaintyValid = true;
-    posDataPtr->vSpeedUncertainty = 20;
+    posDataPtr->vSpeedUncertainty = 5000;
     posDataPtr->vSpeedValid = true;
     posDataPtr->vSpeed = 50;
     posDataPtr->vUncertaintyValid = true;
-    posDataPtr->vUncertainty = 100;
+    posDataPtr->vUncertainty = 8000;
     posDataPtr->pdopValid = true;
     posDataPtr->pdop = 7000;
     posDataPtr->leapSecondsValid = true;
@@ -1084,6 +1084,24 @@ void pa_gnssSimu_GetDOPValue
             break;
     }
 }
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get original accuracy values received from platform adaptor.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_gnssSimu_GetAccuracyValue
+(
+    int32_t* hSpeedUncertainty,
+    int32_t* vSpeedUncertainty,
+    int32_t* vUncertainty
+)
+{
+    *hSpeedUncertainty = GnssPositionData.hSpeedUncertainty;
+    *vSpeedUncertainty = GnssPositionData.vSpeedUncertainty;
+    *vUncertainty = GnssPositionData.vUncertainty;
+}
+
 
 //--------------------------------------------------------------------------------------------------
 /**
