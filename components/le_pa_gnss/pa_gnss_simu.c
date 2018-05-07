@@ -86,13 +86,13 @@ static le_gnss_NmeaBitMask_t NmeaBitMask = LE_GNSS_NMEA_MASK_GPGGA;
 /**
  * Inline function to convert and round to the nearest
  *
- * The function firstly converts the float value to int according to the requested place after the
+ * The function firstly converts the double value to int according to the requested place after the
  * decimal given by place parameter. Secondly, a round to the nearest is done the int value.
  */
 //--------------------------------------------------------------------------------------------------
 static inline int32_t ConvertAndRoundToNearest
 (
-    float value,     ///< [IN] value to round to the nearest
+    double value,    ///< [IN] value to round to the nearest
     int32_t place    ///< [IN] the place after the decimal in power of 10
 )
 {
