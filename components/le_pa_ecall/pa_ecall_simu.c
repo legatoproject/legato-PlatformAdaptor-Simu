@@ -30,6 +30,7 @@ static uint16_t             NadDeregistrationTime = 120;
 static uint16_t             FallbackTime = 60;
 static uint16_t             AutoAnswerTime = 20;
 static uint16_t             MSDMaxTransTime = 60;
+static uint16_t             PostTestRegistrationTime = 120;
 static le_ecall_OpMode_t    OperationMode = LE_ECALL_NORMAL_MODE;
 
 //--------------------------------------------------------------------------------------------------
@@ -61,8 +62,8 @@ le_result_t ecall_simu_Init
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_Init
 (
-    pa_ecall_SysStd_t sysStd ///< [IN] Choosen system (PA_ECALL_PAN_EUROPEAN or PA_ECALL_ERA_GLONASS)
-)
+    pa_ecall_SysStd_t sysStd ///< [IN] Choosen system (PA_ECALL_PAN_EUROPEAN or
+)                            ///< PA_ECALL_ERA_GLONASS)
 {
     return LE_OK;
 }
@@ -94,7 +95,7 @@ void pa_ecallSimu_ReportEcallState
 //--------------------------------------------------------------------------------------------------
 le_event_HandlerRef_t pa_ecall_AddEventHandler
 (
-    pa_ecall_EventHandlerFunc_t   handlerFuncPtr ///< [IN] The event handler function.
+    pa_ecall_EventHandlerFunc_t   handlerFuncPtr ///< [IN] The event handler function
 )
 {
     LE_INFO("Add new eCall Event handler.");
@@ -152,7 +153,7 @@ le_result_t pa_ecall_SetPsapNumber
 le_result_t pa_ecall_GetPsapNumber
 (
     char*    psapPtr, ///< [OUT] Public Safely Answering Point number
-    size_t   len      ///< [IN] The length of SMSC string.
+    size_t   len      ///< [IN] The length of SMSC string
 )
 {
     return le_utf8_Copy(psapPtr, PsapNumber, len, NULL);
@@ -311,7 +312,7 @@ le_result_t pa_ecall_UseUSimNumbers
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_SetNadDeregistrationTime
 (
-    uint16_t    deregTime  ///< [IN] the 'NAD Deregistration Time' value in minutes.
+    uint16_t    deregTime  ///< [IN] the 'NAD Deregistration Time' value in minutes
 )
 {
     NadDeregistrationTime = deregTime;
@@ -329,7 +330,7 @@ le_result_t pa_ecall_SetNadDeregistrationTime
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_GetNadDeregistrationTime
 (
-    uint16_t*    deregTimePtr  ///< [OUT] the 'NAD Deregistration Time' value in minutes.
+    uint16_t*    deregTimePtr  ///< [OUT] the 'NAD Deregistration Time' value in minutes
 )
 {
     *deregTimePtr = NadDeregistrationTime;
@@ -348,7 +349,7 @@ le_result_t pa_ecall_GetNadDeregistrationTime
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_SetEraGlonassFallbackTime
 (
-    uint16_t    duration  ///< [IN] the ECALL_CCFT time value in minutes.
+    uint16_t    duration  ///< [IN] the ECALL_CCFT time value in minutes
 )
 {
     FallbackTime = duration;
@@ -367,7 +368,7 @@ le_result_t pa_ecall_SetEraGlonassFallbackTime
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_GetEraGlonassFallbackTime
 (
-    uint16_t*    durationPtr  ///< [OUT] the ECALL_CCFT time value in minutes.
+    uint16_t*    durationPtr  ///< [OUT] the ECALL_CCFT time value in minutes
 )
 {
     *durationPtr = FallbackTime;
@@ -386,7 +387,7 @@ le_result_t pa_ecall_GetEraGlonassFallbackTime
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_SetEraGlonassAutoAnswerTime
 (
-    uint16_t autoAnswerTime  ///< [IN] the ECALL_AUTO_ANSWER_TIME time value in minutes.
+    uint16_t autoAnswerTime  ///< [IN] the ECALL_AUTO_ANSWER_TIME time value in minutes
 )
 {
     AutoAnswerTime = autoAnswerTime;
@@ -405,7 +406,7 @@ le_result_t pa_ecall_SetEraGlonassAutoAnswerTime
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_GetEraGlonassAutoAnswerTime
 (
-    uint16_t* autoAnswerTimePtr  ///< [OUT] the ECALL_AUTO_ANSWER_TIME time value in minutes.
+    uint16_t* autoAnswerTimePtr  ///< [OUT] the ECALL_AUTO_ANSWER_TIME time value in minutes
 )
 {
     if (NULL == autoAnswerTimePtr)
@@ -439,6 +440,25 @@ le_result_t pa_ecall_SetEraGlonassMSDMaxTransmissionTime
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Set the 'ECALL_POST_TEST_REGISTRATION_TIME' time value in seconds.
+ *
+ * @return
+ *  - LE_OK on success
+ *  - LE_FAULT on failure
+ *  - LE_UNSUPPORTED if the function is not supported by the target
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_ecall_SetEraGlonassPostTestRegistrationTime
+(
+    uint16_t postTestRegTime  ///< [IN] ECALL_POST_TEST_REGISTRATION_TIME time value (in seconds)
+)
+{
+    PostTestRegistrationTime = postTestRegTime;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Get the ECALL_MSD_MAX_TRANSMISSION_TIME time.
  *
  * @return
@@ -459,5 +479,31 @@ le_result_t pa_ecall_GetEraGlonassMSDMaxTransmissionTime
     }
 
     *msdMaxTransTimePtr = MSDMaxTransTime;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the 'ECALL_POST_TEST_REGISTRATION_TIME' time value in seconds.
+ *
+ * @return
+ *  - LE_OK on success
+ *  - LE_FAULT on failure
+ *  - LE_UNSUPPORTED if the function is not supported by the target
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_ecall_GetEraGlonassPostTestRegistrationTime
+(
+    uint16_t* postTestRegTimePtr  ///< [OUT] ECALL_POST_TEST_REGISTRATION_TIME time value
+                                  ///< (in seconds)
+)
+{
+    if (NULL == postTestRegTimePtr)
+    {
+        LE_ERROR("postTestRegTimePtr is NULL!");
+        return LE_FAULT;
+    }
+
+    *postTestRegTimePtr = PostTestRegistrationTime;
     return LE_OK;
 }
