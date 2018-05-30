@@ -20,6 +20,14 @@
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Maximum and default values for SAR backoff state
+ */
+//--------------------------------------------------------------------------------------------------
+#define SAR_BACKOFF_STATE_MAX       8
+#define SAR_BACKOFF_STATE_DEFAULT   0
+
+//--------------------------------------------------------------------------------------------------
+/**
  * The internal current RAT setting
  */
 //--------------------------------------------------------------------------------------------------
@@ -79,6 +87,13 @@ static le_mem_PoolRef_t ScanInformationPool;
  */
 //--------------------------------------------------------------------------------------------------
 static le_onoff_t RadioPower = LE_ON;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * The internal SAR state
+ */
+//--------------------------------------------------------------------------------------------------
+static uint8_t SarBackoffStatus = SAR_BACKOFF_STATE_DEFAULT;
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -286,7 +301,9 @@ le_result_t pa_mrc_SetRadioPower
 )
 {
     if(RadioPower == power)
+    {
         return LE_OK;
+    }
 
     switch(power)
     {
@@ -415,7 +432,9 @@ le_result_t pa_mrc_ConfigureNetworkReg
 )
 {
     if(setting == PA_MRC_ENABLE_REG_NOTIFICATION)
+    {
         return LE_OK;
+    }
 
     return LE_NOT_POSSIBLE;
 }
@@ -531,14 +550,18 @@ le_result_t pa_mrc_GetCurrentNetwork
     {
         res = le_utf8_Copy(nameStr, PA_SIMU_MRC_DEFAULT_NAME, nameStrSize, NULL);
         if (res != LE_OK)
+        {
             return res;
+        }
     }
 
     if (mccStr != NULL)
     {
         res = le_utf8_Copy(mccStr, CurentMccStr, mccStrNumElements, NULL);
         if (res != LE_OK)
+        {
             return res;
+        }
     }
 
     if (mncStr != NULL)
@@ -1491,6 +1514,55 @@ le_result_t pa_mrc_GetJammingDetection
         default:
             return LE_FAULT;
     }
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the SAR backoff state
+ *
+ * @return
+ *  - LE_OK             The function succeeded.
+ *  - LE_FAULT          The function failed.
+ *  - LE_UNSUPPORTED    The feature is not supported.
+ *  - LE_OUT_OF_RANGE   The provided index is out of range.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_SetSarBackoffState
+(
+    uint8_t state
+)
+{
+    if (state > SAR_BACKOFF_STATE_MAX)
+    {
+        return LE_OUT_OF_RANGE;
+    }
+
+    SarBackoffStatus = state;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the SAR backoff state
+ *
+ * @return
+ *  - LE_OK             The function succeeded.
+ *  - LE_FAULT          The function failed.
+ *  - LE_UNSUPPORTED    The feature is not supported.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_GetSarBackoffState
+(
+    uint8_t* statePtr
+)
+{
+    if (!statePtr)
+    {
+        return LE_FAULT;
+    }
+
+    *statePtr = SarBackoffStatus;
+    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
