@@ -303,6 +303,10 @@ static void SetStateFromString
     {
         state = LE_SIM_BUSY;
     }
+    else if (0 == strcmp(stateStr, "POWER_DOWN"))
+    {
+        state = LE_SIM_POWER_DOWN;
+    }
     else
     {
         LE_ERROR("Unknown SIM state '%s'", stateStr);
