@@ -48,6 +48,7 @@ static le_sim_StkRefreshMode_t StkRefreshMode = LE_SIM_REFRESH_MODE_MAX;
 static le_sim_StkRefreshStage_t StkRefreshStage = LE_SIM_STAGE_MAX;
 static le_sem_Ref_t SyncSemaphore = NULL;
 static le_onoff_t SimPower;
+static bool AutomaticSimEnabled = false;
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -1465,5 +1466,49 @@ le_result_t pa_sim_GetLastStkStatus
     stkStatus->stkRefreshMode = StkRefreshMode;
     stkStatus->stkRefreshStage = StkRefreshStage;
 
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Enable or disable the automatic SIM selection
+ *
+ * @return
+ *      - LE_OK          Function succeeded.
+ *      - LE_FAULT       Function failed to execute.
+ *      - LE_UNSUPPORTED The platform does not support this operation.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sim_SetAutomaticSelection
+(
+    bool    enable    ///< [IN] True if the feature needs to be enabled. False otherwise.
+)
+{
+    AutomaticSimEnabled = enable;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the automatic SIM selection
+ *
+ * @return
+ *      - LE_OK             Function succeeded.
+ *      - LE_FAULT          Function failed to execute.
+ *      - LE_BAD_PARAMETER  Invalid parameter.
+ *      - LE_UNSUPPORTED    The platform does not support this operation.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sim_GetAutomaticSelection
+(
+    bool*    enablePtr    ///< [OUT] True if the feature is enabled. False otherwise.
+)
+{
+    if (NULL == enablePtr)
+    {
+        return LE_BAD_PARAMETER;
+    }
+
+    *enablePtr = AutomaticSimEnabled;
     return LE_OK;
 }
