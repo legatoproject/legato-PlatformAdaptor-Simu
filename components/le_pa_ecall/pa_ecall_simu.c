@@ -507,3 +507,20 @@ le_result_t pa_ecall_GetEraGlonassPostTestRegistrationTime
     *postTestRegTimePtr = PostTestRegistrationTime;
     return LE_OK;
 }
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Update current system standard
+ *
+ * @return
+ *  - LE_OK    on success
+ *  - LE_FAULT on failure
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_ecall_UpdateSystemStandard
+(
+    pa_ecall_SysStd_t sysStandard  ///< [IN] The system standard
+)
+{
+    return LE_OK;
+}
