@@ -32,6 +32,7 @@ typedef struct
 } MdcSimuProfile_t;
 
 static MdcSimuProfile_t* MdcSimuProfile;
+static pa_mdc_ConnectionFailureCode_t MdcSimuConnectionFailure;
 static pa_mdc_SessionStateHandler_t SessionStateHandler;
 static le_mem_PoolRef_t NewSessionStatePool , MdcSimuProfileDataPool;
 static pa_mdc_PktStatistics_t DataStatistics;
@@ -39,6 +40,7 @@ static pa_mdc_PktStatistics_t DataStatistics;
 #define LE_MDMDEFS_IPVERSION_2_LE_MDC_PDP(X) ((X == LE_MDMDEFS_IPV4) ? LE_MDC_PDP_IPV4:\
                                               ((X == LE_MDMDEFS_IPV6) ? LE_MDC_PDP_IPV6:\
                                               LE_MDC_PDP_UNKNOWN))
+#define LE_MDC_END_FAILURE_CODE 0x02
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -337,11 +339,26 @@ le_result_t pa_mdc_WriteProfile
 void pa_mdc_GetConnectionFailureReason
 (
     uint32_t profileIndex,              ///< [IN] The profile to use
-    pa_mdc_ConnectionFailureCode_t* failureCodesPtr  ///< [OUT] The specific Failure Reason codes
+    pa_mdc_ConnectionFailureCode_t** failureCodesPtr  ///< [OUT] The specific Failure Reason codes
 )
 {
-    memset(failureCodesPtr, 0, sizeof(pa_mdc_ConnectionFailureCode_t));
-    failureCodesPtr->callEndFailure = LE_MDC_DISC_UNDEFINED;
+    *failureCodesPtr = &MdcSimuConnectionFailure;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the connection failure reason for IPv4v6 mode
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_mdc_GetConnectionFailureReasonExt
+(
+    uint32_t profileIndex,                           ///< [IN] The profile to use
+    le_mdc_Pdp_t pdp,                                ///< [IN] The failure reason pdp type
+    pa_mdc_ConnectionFailureCode_t** failureCodesPtr  ///< [OUT] The specific Failure Reason codes
+)
+{
+    *failureCodesPtr = &MdcSimuConnectionFailure;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -806,9 +823,11 @@ le_result_t pa_mdc_StopSession
             sessionStateDataPtr->profileIndex = profilePtr->profileIndex;
             sessionStateDataPtr->newState = LE_MDC_DISCONNECTED;
             sessionStateDataPtr->disc = LE_MDC_DISC_REGULAR_DEACTIVATION;
-            sessionStateDataPtr->discCode = 2;
+            sessionStateDataPtr->discCode = LE_MDC_END_FAILURE_CODE;
             SessionStateHandler(sessionStateDataPtr);
         }
+        MdcSimuConnectionFailure.callEndFailure = LE_MDC_DISC_REGULAR_DEACTIVATION;
+        MdcSimuConnectionFailure.callEndFailureCode = LE_MDC_END_FAILURE_CODE;
         return LE_OK;
     }
 }

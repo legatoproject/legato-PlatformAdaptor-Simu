@@ -120,7 +120,5 @@ le_result_t pa_mdcSimu_Init
 (
     void
 );
-
-
 #endif // PA_MDC_SIMU_H_INCLUDE_GUARD
 
