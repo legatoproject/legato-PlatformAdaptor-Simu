@@ -1609,6 +1609,25 @@ le_result_t pa_mrc_GetSarBackoffState
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * This function retrieves the network time from the modem.
+ *
+ * @return
+ * - LE_FAULT         The function failed to get the value.
+ * - LE_UNAVAILABLE   No valid user time was returned.
+ * - LE_UNSUPPORTED   The feature is not supported.
+ * - LE_OK            The function succeeded.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_SyncNetworkTime
+(
+    void
+)
+{
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * This function must be called to register a handler to report jamming detection notification.
  *
  * @return A handler reference, which is only needed for later removal of the handler.
@@ -1640,4 +1659,28 @@ le_event_HandlerRef_t pa_mrc_AddJammingDetectionIndHandler
     {
         return NULL;
     }
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to register a handler to report a Network Time event.
+ *
+ * @return A handler reference, which is only needed for later removal of the handler.
+ *
+ * @note Doesn't return on failure, so there's no need to check the return value for errors.
+ */
+//--------------------------------------------------------------------------------------------------
+le_event_HandlerRef_t pa_mrc_AddNetworkTimeIndHandler
+(
+    pa_mrc_NetworkTimeHandlerFunc_t networkTimeIndHandler       ///< [IN] The handler function
+                                                                ///  to handle network
+                                                                ///  time indication.
+)
+{
+    LE_ASSERT(networkTimeIndHandler != NULL);
+
+    return le_event_AddHandler(
+                "NetworkTimeIndHandler",
+                NewRegStateEvent,
+                (le_event_HandlerFunc_t)networkTimeIndHandler);
 }
