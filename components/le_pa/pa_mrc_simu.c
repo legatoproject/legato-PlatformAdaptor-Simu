@@ -576,7 +576,6 @@ le_result_t pa_mrc_GetCurrentNetwork
 /**
  * This function must be called to delete the list of Scan Information
  *
- * @TODO    implementation
  */
 //--------------------------------------------------------------------------------------------------
 void pa_mrc_DeleteScanInformation
@@ -590,6 +589,49 @@ void pa_mrc_DeleteScanInformation
     while ((linkPtr = le_dls_Pop(scanInformationListPtr)) != NULL)
     {
         nodePtr = CONTAINER_OF(linkPtr, pa_mrc_ScanInformation_t, link);
+        le_mem_Release(nodePtr);
+    }
+}
+
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to delete the list of pci Scan Information
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_mrc_DeletePciScanInformation
+(
+    le_dls_List_t *scanInformationListPtr ///< [IN] list of pa_mrc_ScanInformation_t
+)
+{
+    pa_mrc_PciScanInformation_t* nodePtr;
+    le_dls_Link_t *linkPtr;
+
+    while ((linkPtr=le_dls_Pop(scanInformationListPtr)) != NULL)
+    {
+        nodePtr = CONTAINER_OF(linkPtr, pa_mrc_PciScanInformation_t, link);
+        le_mem_Release(nodePtr);
+    }
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to delete the list of Plmn Information
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_mrc_DeletePlmnScanInformation
+(
+    le_dls_List_t *scanInformationListPtr ///< [IN] list of pa_mrc_PlmnInformation_t
+)
+{
+    pa_mrc_PlmnInformation_t* nodePtr;
+    le_dls_Link_t *linkPtr;
+
+    while ((linkPtr=le_dls_Pop(scanInformationListPtr)) != NULL)
+    {
+        nodePtr = CONTAINER_OF(linkPtr, pa_mrc_PlmnInformation_t, link);
         le_mem_Release(nodePtr);
     }
 }
@@ -615,16 +657,16 @@ le_result_t pa_mrc_PerformNetworkScan
     {
         return LE_NOT_POSSIBLE;
     }
-
-    switch(scanType)
+    if(scanType != PA_MRC_SCAN_PLMN || scanType != PA_MRC_SCAN_CSG || scanType != PA_MRC_SCAN_PCI)
     {
-        case PA_MRC_SCAN_PLMN:
-            break;
-
-        case PA_MRC_SCAN_CSG:
-            break;
+        LE_ERROR("ScanType is invalid");
+        return LE_FAULT;
     }
-
+    if(scanInformationListPtr == NULL)
+    {
+        LE_ERROR("Invalid list is given");
+        return LE_FAULT;
+    }
     if (ratMask & LE_MRC_BITMASK_RAT_GSM)
     {
         AppendNetworkScanResult(LE_MRC_RAT_GSM, scanInformationListPtr);
