@@ -83,6 +83,20 @@ static le_mem_PoolRef_t ScanInformationPool;
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * The pa_mrc_PciScanInformation_t pool
+ */
+//--------------------------------------------------------------------------------------------------
+static le_mem_PoolRef_t PciScanInformationPool;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * The pa_mrc_PlmnInformation_t pool
+ */
+//--------------------------------------------------------------------------------------------------
+static le_mem_PoolRef_t PlmnInformationPool;
+
+//--------------------------------------------------------------------------------------------------
+/**
  * The internal radio power state
  */
 //--------------------------------------------------------------------------------------------------
@@ -203,6 +217,51 @@ static void AppendNetworkScanResult
     newScanInformationPtr->isForbidden = false;
 
     le_dls_Queue(scanInformationListPtr, &(newScanInformationPtr->link));
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Append a simulated result for the specified RAT to the list of PCI scan Information
+ */
+//--------------------------------------------------------------------------------------------------
+static le_result_t AppendNetworkPciScanResult
+(
+    le_mrc_Rat_t   rat,                   /// [IN] Requested simulated RAT result
+    le_dls_List_t *scanInformationListPtr ///< [OUT] list of pa_mrc_ScanInformation_t
+)
+{
+    pa_mrc_PciScanInformation_t* scanInformationPtr = NULL;
+    int i, j;
+
+    for (i = 0; i < 10; i++)
+    {
+        scanInformationPtr = le_mem_ForceAlloc(PciScanInformationPool);
+
+        memset(scanInformationPtr, 0, sizeof(pa_mrc_PciScanInformation_t));
+        scanInformationPtr->link     = LE_DLS_LINK_INIT;
+        scanInformationPtr->plmnList = LE_DLS_LIST_INIT;
+        scanInformationPtr->cellId   = i;
+        le_dls_Queue(scanInformationListPtr,&(scanInformationPtr->link));
+
+        for (j = 0; j < i+1; j++)
+        {
+            pa_mrc_PlmnInformation_t* plmnInformationPtr = NULL;
+            plmnInformationPtr = le_mem_ForceAlloc(PlmnInformationPool);
+
+            memset(plmnInformationPtr, 0, sizeof(pa_mrc_PlmnInformation_t));
+            plmnInformationPtr->link = LE_DLS_LINK_INIT;
+
+            snprintf(plmnInformationPtr->mobileCode.mnc,
+                     sizeof(plmnInformationPtr->mobileCode.mnc), "%d", j);
+
+            snprintf(plmnInformationPtr->mobileCode.mcc,
+                    sizeof(plmnInformationPtr->mobileCode.mcc), "2%d", j);
+
+            le_dls_Queue(&scanInformationPtr->plmnList,&(plmnInformationPtr->link));
+        }
+    }
+
+    return LE_OK;
 }
 
 
@@ -657,27 +716,44 @@ le_result_t pa_mrc_PerformNetworkScan
     {
         return LE_NOT_POSSIBLE;
     }
-    if(scanType != PA_MRC_SCAN_PLMN || scanType != PA_MRC_SCAN_CSG || scanType != PA_MRC_SCAN_PCI)
-    {
-        LE_ERROR("ScanType is invalid");
-        return LE_FAULT;
-    }
+
     if(scanInformationListPtr == NULL)
     {
         LE_ERROR("Invalid list is given");
         return LE_FAULT;
     }
-    if (ratMask & LE_MRC_BITMASK_RAT_GSM)
+
+    switch (scanType)
     {
-        AppendNetworkScanResult(LE_MRC_RAT_GSM, scanInformationListPtr);
-    }
-    if (ratMask & LE_MRC_BITMASK_RAT_UMTS)
-    {
-        AppendNetworkScanResult(LE_MRC_RAT_UMTS, scanInformationListPtr);
-    }
-    if (ratMask & LE_MRC_BITMASK_RAT_LTE)
-    {
-        AppendNetworkScanResult(LE_MRC_RAT_LTE, scanInformationListPtr);
+        case PA_MRC_SCAN_PLMN:
+        case PA_MRC_SCAN_CSG:
+            if (ratMask & LE_MRC_BITMASK_RAT_GSM)
+            {
+                AppendNetworkScanResult(LE_MRC_RAT_GSM, scanInformationListPtr);
+            }
+            if (ratMask & LE_MRC_BITMASK_RAT_UMTS)
+            {
+                AppendNetworkScanResult(LE_MRC_RAT_UMTS, scanInformationListPtr);
+            }
+            if (ratMask & LE_MRC_BITMASK_RAT_LTE)
+            {
+                AppendNetworkScanResult(LE_MRC_RAT_LTE, scanInformationListPtr);
+            }
+            return LE_OK;
+
+        case PA_MRC_SCAN_PCI:
+            if (ratMask & LE_MRC_BITMASK_RAT_LTE)
+            {
+                return AppendNetworkPciScanResult(LE_MRC_RAT_LTE, scanInformationListPtr);
+            }
+            else
+            {
+                return LE_FAULT;
+            }
+
+        default:
+            LE_ERROR("ScanType is invalid");
+            return LE_FAULT;
     }
 
     return LE_OK;
@@ -1407,8 +1483,14 @@ le_result_t mrc_simu_Init
     ScanInformationPool = le_mem_CreatePool("ScanInformationPool",
                                             sizeof(pa_mrc_ScanInformation_t));
 
+    PciScanInformationPool = le_mem_CreatePool("PciScanInformationPool",
+                                               sizeof(pa_mrc_PciScanInformation_t));
+
+    PlmnInformationPool=le_mem_CreatePool("PlmnInformationPool",
+                                          sizeof(pa_mrc_PlmnInformation_t));
+
     JammingDetectionIndPool = le_mem_CreatePool("JammingDetectionIndPool",
-                                                  sizeof(pa_mrc_JammingDetectionIndication_t));
+                                                sizeof(pa_mrc_JammingDetectionIndication_t));
 
     JammingDetectionEventId = le_event_CreateIdWithRefCounting("JammingDetectionInd");
 
