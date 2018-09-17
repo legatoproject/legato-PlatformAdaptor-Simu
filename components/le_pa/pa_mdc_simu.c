@@ -40,7 +40,6 @@ static pa_mdc_PktStatistics_t DataStatistics;
 #define LE_MDMDEFS_IPVERSION_2_LE_MDC_PDP(X) ((X == LE_MDMDEFS_IPV4) ? LE_MDC_PDP_IPV4:\
                                               ((X == LE_MDMDEFS_IPV6) ? LE_MDC_PDP_IPV6:\
                                               LE_MDC_PDP_UNKNOWN))
-#define LE_MDC_END_FAILURE_CODE 0x02
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -828,6 +827,9 @@ le_result_t pa_mdc_StopSession
         }
         MdcSimuConnectionFailure.callEndFailure = LE_MDC_DISC_REGULAR_DEACTIVATION;
         MdcSimuConnectionFailure.callEndFailureCode = LE_MDC_END_FAILURE_CODE;
+        MdcSimuConnectionFailure.callConnectionFailureType = LE_MDC_DISC_REGULAR_DEACTIVATION;
+        MdcSimuConnectionFailure.callConnectionFailureCode = LE_MDC_END_FAILURE_CODE;
+
         return LE_OK;
     }
 }
