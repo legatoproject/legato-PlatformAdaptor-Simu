@@ -240,7 +240,8 @@ static le_result_t AppendNetworkPciScanResult
         memset(scanInformationPtr, 0, sizeof(pa_mrc_PciScanInformation_t));
         scanInformationPtr->link     = LE_DLS_LINK_INIT;
         scanInformationPtr->plmnList = LE_DLS_LIST_INIT;
-        scanInformationPtr->cellId   = i;
+        scanInformationPtr->physicalCellId = i;
+        scanInformationPtr->globalCellId   = 1000 + i;
         le_dls_Queue(scanInformationListPtr,&(scanInformationPtr->link));
 
         for (j = 0; j < i+1; j++)
