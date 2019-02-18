@@ -86,6 +86,7 @@ void pa_mccSimu_ReportCallEvent
     LE_INFO("Report call event.%d", event);
 
     pa_mcc_CallEventData_t* eventDataPtr = le_mem_ForceAlloc(CallEventDataPool);
+    memset(eventDataPtr, 0, sizeof(pa_mcc_CallEventData_t));
     eventDataPtr->callId = CURRENT_CALL_ID;
     eventDataPtr->event = event;
     le_utf8_Copy(eventDataPtr->phoneNumber, phoneNumPtr, sizeof(eventDataPtr->phoneNumber), NULL);
