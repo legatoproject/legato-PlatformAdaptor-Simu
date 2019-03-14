@@ -655,6 +655,7 @@ le_result_t pa_mdc_GetDataBearerTechnology
  * @return
  *      - LE_OK on success
  *      - LE_DUPLICATE if the data session is already connected
+ *      - LE_TIMEOUT for session start timeout
  *      - LE_FAULT for other failures
  */
 //--------------------------------------------------------------------------------------------------
@@ -673,6 +674,7 @@ le_result_t pa_mdc_StartSessionIPV4
  * @return
  *      - LE_OK on success
  *      - LE_DUPLICATE if the data session is already connected
+ *      - LE_TIMEOUT for session start timeout
  *      - LE_FAULT for other failures
  */
 //--------------------------------------------------------------------------------------------------
@@ -691,6 +693,7 @@ le_result_t pa_mdc_StartSessionIPV6
  * @return
  *      - LE_OK on success
  *      - LE_DUPLICATE if the data session is already connected
+ *      - LE_TIMEOUT for both sessions start timeout
  *      - LE_FAULT for other failures
  */
 //--------------------------------------------------------------------------------------------------
