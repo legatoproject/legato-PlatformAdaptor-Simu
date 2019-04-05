@@ -407,9 +407,10 @@ le_result_t pa_fwupdate_GetUpdateStatus
         if (statusLabelLength > 0)
         {
             // Update the status label
-            strncpy(statusLabelPtr,
-                GetUpdateStatusLabel(*statusPtr),
-                statusLabelLength);
+            le_utf8_Copy(statusLabelPtr,
+                         GetUpdateStatusLabel(*statusPtr),
+                         statusLabelLength,
+                         NULL);
         }
         else
         {
@@ -443,15 +444,10 @@ le_result_t pa_fwupdate_GetFirmwareVersion
     {
         return LE_BAD_PARAMETER;
     }
-    if (ReturnCode == LE_OK )
+    if (ReturnCode == LE_OK)
     {
         /* Simulate a correct API behavior */
-        if (versionSize > strlen (BOOT_VERSION_UT))
-        {
-            memset (versionPtr, 0, versionSize);
-            strncpy (versionPtr, FW_VERSION_UT, strlen (FW_VERSION_UT));
-        }
-        else
+        if (le_utf8_Copy(versionPtr, FW_VERSION_UT, versionSize, NULL) != LE_OK)
         {
             return LE_OVERFLOW;
         }
@@ -485,12 +481,7 @@ le_result_t pa_fwupdate_GetBootloaderVersion
     if (ReturnCode == LE_OK )
     {
         /* Simulate a correct API behavior */
-        if (versionSize > strlen (FW_VERSION_UT))
-        {
-            memset (versionPtr, 0, versionSize);
-            strncpy (versionPtr, BOOT_VERSION_UT, strlen (BOOT_VERSION_UT));
-        }
-        else
+        if (le_utf8_Copy(versionPtr, BOOT_VERSION_UT, versionSize, NULL) != LE_OK)
         {
             return LE_OVERFLOW;
         }
@@ -524,12 +515,7 @@ le_result_t pa_fwupdate_GetAppBootloaderVersion
     if (ReturnCode == LE_OK )
     {
         /* Simulate a correct API behavior */
-        if (versionSize > strlen(APP_BOOT_VERSION_UT))
-        {
-            memset(versionPtr, 0, versionSize);
-            strncpy(versionPtr, APP_BOOT_VERSION_UT, strlen(APP_BOOT_VERSION_UT));
-        }
-        else
+        if (le_utf8_Copy(versionPtr, APP_BOOT_VERSION_UT, versionSize, NULL) != LE_OK)
         {
             return LE_OVERFLOW;
         }
