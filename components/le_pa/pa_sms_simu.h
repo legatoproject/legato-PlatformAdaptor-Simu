@@ -13,8 +13,8 @@
 #include "pa_mrc_simu.h"
 
 typedef struct __attribute__((__packed__)) {
-    uint8_t origAddress[LE_MDMDEFS_PHONE_NUM_MAX_LEN];
-    uint8_t destAddress[LE_MDMDEFS_PHONE_NUM_MAX_LEN];
+    uint8_t origAddress[LE_MDMDEFS_PHONE_NUM_MAX_BYTES];
+    uint8_t destAddress[LE_MDMDEFS_PHONE_NUM_MAX_BYTES];
     pa_sms_Protocol_t protocol;
     uint32_t dataLen;
     uint8_t data[];
