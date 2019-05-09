@@ -637,6 +637,70 @@ le_result_t pa_gnss_GetAcquisitionRate
     return LE_FAULT;
 }
 
+// -------------------------------------------------------------------------------------------------
+/**
+ * Get the minimum NMEA rate supported on this platform
+ *
+ * @return LE_OK               Function succeeded.
+ * @return LE_FAULT            The function failed.
+ */
+// -------------------------------------------------------------------------------------------------
+le_result_t pa_gnss_GetMinNmeaRate
+(
+    uint32_t* minNmeaRatePtr    ///< [OUT] Minimum NMEA rate in milliseconds.
+)
+{
+    return LE_FAULT;
+}
+
+// -------------------------------------------------------------------------------------------------
+/**
+ * Get the maximum NMEA rate supported on this platform
+ *
+ * @return LE_OK               Function succeeded.
+ * @return LE_FAULT            The function failed.
+ */
+// -------------------------------------------------------------------------------------------------
+le_result_t pa_gnss_GetMaxNmeaRate
+(
+    uint32_t* maxNmeaRatePtr    ///< [OUT] Maximum NMEA rate in milliseconds.
+)
+{
+    return LE_FAULT;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Returns a bitmask containing all NMEA sentences supported on this platform
+ *
+ * @return LE_OK               Function succeeded.
+ * @return LE_FAULT            The function failed.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_gnss_GetSupportedNmeaSentences
+(
+    le_gnss_NmeaBitMask_t* nmeaMaskPtr    ///< [OUT] Supported NMEA sentences
+)
+{
+    return LE_FAULT;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Returns a bitmask containing all satellite constellations supported on this platform
+ *
+ * @return LE_OK               Function succeeded.
+ * @return LE_FAULT            The function failed.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_gnss_GetSupportedConstellations
+(
+    le_gnss_ConstellationBitMask_t* constellationMaskPtr    ///< [OUT] Supported GNSS constellations
+)
+{
+    return LE_FAULT;
+}
+
 //--------------------------------------------------------------------------------------------------
 /**
  * Report the position event
@@ -791,15 +855,33 @@ le_result_t pa_gnss_InjectUtcTime
 
 //--------------------------------------------------------------------------------------------------
 /**
- * This function must be called to restart the GNSS device.
+ * This function delete GNSS assistance data for warm/cold/factory start
  *
- * @return LE_FAULT         The function failed.
- * @return LE_OK            The function succeeded.
+ * @return LE_FAULT           The function failed.
+ * @return LE_OK              The function succeeded.
+ * @return LE_UNSUPPORTED     Restart type not supported.
+ * @return LE_BAD_PARAMETER   Bad input parameter.
  */
 //--------------------------------------------------------------------------------------------------
-le_result_t pa_gnss_ForceRestart
+le_result_t pa_gnss_DeleteAssistData
 (
-    pa_gnss_Restart_t  restartType ///< [IN] type of restart
+    le_gnss_StartMode_t mode    ///< [IN] Start mode
+)
+{
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to stop the GNSS engine.
+ *
+ * @return LE_FAULT  The function failed.
+ * @return LE_OK     The function succeed.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_gnss_ForceEngineStop
+(
+    void
 )
 {
     return LE_FAULT;
@@ -1157,6 +1239,36 @@ le_result_t pa_gnss_ConvertDataCoordinateSystem
     le_gnss_LocationDataType_t locationDataType,  ///< [IN] Type of location data to convert.
     int64_t locationDataSrc,                      ///< [IN] Data to convert.
     int64_t* locationDataDstPtr                   ///< [OUT] Converted Data.
+)
+{
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Enables the EXT_GPS_LNA_EN signal
+ *
+ * @return LE_OK               Function succeeded.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_gnss_EnableExternalLna
+(
+    void
+)
+{
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Disables the EXT_GPS_LNA_EN signal
+ *
+ * @return LE_OK               Function succeeded.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_gnss_DisableExternalLna
+(
+    void
 )
 {
     return LE_OK;
