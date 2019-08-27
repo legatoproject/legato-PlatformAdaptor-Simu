@@ -524,3 +524,21 @@ le_result_t pa_ecall_UpdateSystemStandard
 {
     return LE_OK;
 }
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function is called to deregister device from network before T9/T10 expiration.
+ *
+ * @return
+ *  - LE_OK on success
+ *  - LE_FAULT on failure
+ *  - LE_UNSUPPORTED if the function is not supported by the target
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_ecall_TerminateRegistration
+(
+    void
+)
+{
+    return LE_OK;
+}
