@@ -28,6 +28,13 @@
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Bsic value
+ */
+//--------------------------------------------------------------------------------------------------
+#define GSM_BSIC 13
+
+//--------------------------------------------------------------------------------------------------
+/**
  * The internal current RAT setting
  */
 //--------------------------------------------------------------------------------------------------
@@ -58,6 +65,12 @@ static le_event_Id_t RatChangeEvent;
 //--------------------------------------------------------------------------------------------------
 static le_event_Id_t NewRegStateEvent;
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * Pool for cells information.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_mem_PoolRef_t             CellInfoPool = NULL;
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -465,13 +478,12 @@ le_event_HandlerRef_t pa_mrc_AddNetworkRegHandler
  * @note Doesn't return on failure, so there's no need to check the return value for errors.
  */
 //--------------------------------------------------------------------------------------------------
-le_result_t pa_mrc_RemoveNetworkRegHandler
+void pa_mrc_RemoveNetworkRegHandler
 (
     le_event_HandlerRef_t handlerRef
 )
 {
     le_event_RemoveHandler(handlerRef);
-    return LE_OK;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -529,6 +541,25 @@ le_result_t pa_mrc_GetNetworkRegConfig
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetNetworkRegState
+(
+    le_mrc_NetRegState_t* statePtr  ///< [OUT] The network registration state.
+)
+{
+    *statePtr = LE_MRC_REG_HOME;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function gets the Packet switch registration state.
+ *
+ * @return LE_BAD_PARAMETER Bad parameter passed to the function
+ * @return LE_FAULT         The function failed.
+ * @return LE_TIMEOUT       No response was received.
+ * @return LE_OK            The function succeeded.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_GetPacketSwitchRegState
 (
     le_mrc_NetRegState_t* statePtr  ///< [OUT] The network registration state.
 )
@@ -851,6 +882,45 @@ le_result_t pa_mrc_SavePreferredOperators
     return LE_FAULT;
 }
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function gets the base station identity Code (BSIC) for the serving cell on GSM network.
+ *
+ * @return LE_OK            The function succeeded.
+ * @return LE_BAD_PARAMETER Bad parameter passed to the function
+ * @return LE_FAULT         The function failed.
+ * @return LE_UNAVAILABLE   The BSIC is not available. The Bsic value is set to UINT8_MAX.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_GetServingCellGsmBsic
+(
+    uint8_t* bsicPtr    ///< [OUT] The Bsic value
+)
+{
+    if (!bsicPtr)
+    {
+        LE_ERROR("bsicPtr is NULL");
+        return LE_BAD_PARAMETER;
+    }
+
+    le_mrc_Rat_t rat = LE_MRC_RAT_UNKNOWN;
+
+    if (LE_OK != pa_mrc_GetRadioAccessTechInUse(&rat))
+    {
+        LE_ERROR("Failed to get the Radio Access Technology in use.");
+        return LE_FAULT;
+    }
+
+    if (LE_MRC_RAT_GSM != rat)
+    {
+        LE_ERROR("The module is not camped in GSM");
+        *bsicPtr = UINT8_MAX;
+        return LE_UNAVAILABLE;
+    }
+
+    *bsicPtr = GSM_BSIC;
+    return LE_OK;
+}
 
 //--------------------------------------------------------------------------------------------------
 /**
@@ -866,7 +936,6 @@ le_result_t pa_mrc_RegisterNetwork
     const char *mncPtr    ///< [IN] Mobile Network Code
 )
 {
-
     IsManual = true;
 
     le_utf8_Copy(CurentMccStr, mccPtr, sizeof(CurentMccStr), NULL);
@@ -1495,6 +1564,9 @@ le_result_t mrc_simu_Init
 
     JammingDetectionEventId = le_event_CreateIdWithRefCounting("JammingDetectionInd");
 
+    // Create the pool for cells information.
+    CellInfoPool =  le_mem_CreatePool("CellInfoPool",  sizeof(pa_mrc_CellInfo_t));
+
     return LE_OK;
 }
 
@@ -1766,4 +1838,80 @@ le_event_HandlerRef_t pa_mrc_AddNetworkTimeIndHandler
                 "NetworkTimeIndHandler",
                 NewRegStateEvent,
                 (le_event_HandlerFunc_t)networkTimeIndHandler);
+}
+
+ //--------------------------------------------------------------------------------------------------
+/**
+* Get the serving Cell Timing Advance index value. Timing advance index value is in the range
+ * from 0 to 1280.
+ *
+ * @return The serving Cell timing advance index value. UINT32_MAX value is returned if the value
+ * is not available.
+ *
+ * @note API is not supported on all platforms.
+ */
+//--------------------------------------------------------------------------------------------------
+uint32_t pa_mrc_GetServingCellTimingAdvance
+(
+    void
+)
+{
+    return PA_SIMU_MRC_DEFAULT_SERVING_TA;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the serving cell Radio Frequency Channel Number. The EARFCN is in the range from 0 to 262143.
+ *
+ * @return The serving Cell frequency channel number. UINT32_MAX value is returned if the value is
+ * not available.
+ *
+ * @note API is not supported on all platforms.
+ * @note <b>multi-app safe</b>
+ */
+//--------------------------------------------------------------------------------------------------
+uint32_t pa_mrc_GetServingCellEarfcn
+(
+    void
+)
+{
+    return PA_SIMU_MRC_DEFAULT_EARFCN;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the Physical serving Cell Id. The Physical cell Id is in the range from 0 to 503.
+ *
+ * @return The Physical serving Cell Id. UINT16_MAX value is returned if the value is
+ * not available.
+ *
+ * @note API is not supported on all platforms.
+ * @note <b>multi-app safe</b>
+ */
+//--------------------------------------------------------------------------------------------------
+uint16_t pa_mrc_GetPhysicalServingLteCellId
+(
+    void
+)
+{
+    return PA_SIMU_MRC_DEFAULT_PHYS_CELLID;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function allocated memory to store Cell information
+ *
+ * @return pointer         The function failed to initialize the module.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+pa_mrc_CellInfo_t* pa_mrc_AllocateCellInfo
+(
+    void
+)
+{
+    pa_mrc_CellInfo_t* cellInfoPtr =
+        (pa_mrc_CellInfo_t*)le_mem_ForceAlloc(CellInfoPool);
+
+    return cellInfoPtr;
 }

@@ -15,6 +15,14 @@
 #define PA_SIMU_MRC_DEFAULT_MCC     "01"
 #define PA_SIMU_MRC_DEFAULT_MNC     "001"
 
+#define PA_SIMU_MRC_DEFAULT_CELLID         0x01A2D002
+#define PA_SIMU_MRC_DEFAULT_LAC            0x02
+#define PA_SIMU_MRC_DEFAULT_RXLEVEL        -65
+#define PA_SIMU_MRC_DEFAULT_EARFCN         0x1234
+#define PA_SIMU_MRC_DEFAULT_SERVING_TA     2
+#define PA_SIMU_MRC_DEFAULT_PHYS_CELLID    100
+#define PA_SIMU_MRC_DEFAULT_BSIC           UINT8_MAX
+
 //--------------------------------------------------------------------------------------------------
 /**
  * Enumeration for jamming detection activation

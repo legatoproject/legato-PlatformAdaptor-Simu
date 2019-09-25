@@ -36,6 +36,8 @@ static pa_mdc_ConnectionFailureCode_t MdcSimuConnectionFailure;
 static pa_mdc_SessionStateHandler_t SessionStateHandler;
 static le_mem_PoolRef_t NewSessionStatePool , MdcSimuProfileDataPool;
 static pa_mdc_PktStatistics_t DataStatistics;
+static le_result_t result = LE_OK;
+static uint8_t cidListPtr[PA_MDC_MAX_PROFILE];
 
 #define LE_MDMDEFS_IPVERSION_2_LE_MDC_PDP(X) ((X == LE_MDMDEFS_IPV4) ? LE_MDC_PDP_IPV4:\
                                               ((X == LE_MDMDEFS_IPV6) ? LE_MDC_PDP_IPV6:\
@@ -1053,6 +1055,73 @@ le_result_t pa_mdc_GetProfileList
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * This function must be called from each thread to connect PA MDC services.
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_mdc_AsyncInit
+(
+    void
+)
+{
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the number of profiles on the modem.
+ *
+ * @return
+ *      - number of profile existing on modem
+ */
+//--------------------------------------------------------------------------------------------------
+uint32_t pa_mdc_GetNumProfiles
+(
+    void
+)
+{
+    return PA_MDC_MAX_PROFILE;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the return function
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_mdcSimu_SetReturn
+(
+    le_result_t res   ///< [IN] The return to use
+)
+{
+    result = res;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set the pdp cid list
+ *
+ * @return
+ *      - LE_OK on success
+ *      - LE_FAULT for all other errors
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mdcSimu_SetPdpCid
+(
+    uint8_t* cidPtr,    ///< [IN] List of supported PDP context identifiers
+    size_t cidSize      ///< [IN] Length of input buffer
+)
+{
+    if (NULL == cidPtr)
+    {
+        return LE_FAULT;
+    }
+    LE_DEBUG("cidPtr size %zu", cidSize);
+
+    memcpy(cidListPtr, cidPtr, cidSize);
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Get the list of supported PDP context identifiers
  *
  * @return
@@ -1068,5 +1137,31 @@ le_result_t pa_mdc_GetCidList
                         ///<         PDP Cid
 )
 {
-    return LE_OK;
+    if (NULL == cidPtr)
+    {
+       LE_ERROR("cidPtr is NULL");
+       return LE_BAD_PARAMETER;
+    }
+
+    if (*cidSizePtr < PA_MDC_MAX_PROFILE)
+    {
+       LE_ERROR("Cid size error");
+       return LE_BAD_PARAMETER;
+    }
+
+    size_t i;
+    size_t tableLen = *cidSizePtr;
+
+    memset(cidPtr, 0, tableLen);
+    memcpy(cidPtr, cidListPtr, tableLen);
+
+    for (i=0; i < tableLen; i++)
+    {
+        if (0 == cidPtr[i])
+        {
+            break;
+        }
+    }
+    *cidSizePtr = i;
+    return result;
 }
