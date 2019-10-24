@@ -1276,6 +1276,25 @@ le_result_t pa_gnss_DisableExternalLna
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * Read the EXT_GPS_LNA_EN Status
+ *
+ * @return LE_OK               Function succeeded.
+ * @return LE_UNSUPPORTED      Function not supported on this platform
+ *
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_gnss_GetExternalLna
+(
+    uint8_t* lnaEnStatusPtr   ///< [OUT] GNSS LNA Status.
+)
+{
+    LE_ERROR("Unsupported function called");
+    return LE_UNSUPPORTED;
+}
+
+
+//--------------------------------------------------------------------------------------------------
+/**
  * Component initialization function.
  *
  * This is not used because it will be called immediately at process start by the application
