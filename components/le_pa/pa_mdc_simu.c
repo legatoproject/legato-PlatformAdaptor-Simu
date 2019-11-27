@@ -1050,3 +1050,23 @@ le_result_t pa_mdc_GetProfileList
 {
     return LE_OK;
 }
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get the list of supported PDP context identifiers
+ *
+ * @return
+ *      - LE_OK on success
+ *      - LE_BAD_PARAMETER if an input parameter is not valid
+ *      - LE_FAULT for all other errors
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mdc_GetCidList
+(
+    uint8_t* cidPtr,    ///< [OUT] List of supported PDP context identifiers
+    size_t* cidSizePtr  ///< [INOUT] Input: length of input buffer; Output: number of supported
+                        ///<         PDP Cid
+)
+{
+    return LE_OK;
+}
