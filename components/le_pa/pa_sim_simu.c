@@ -211,7 +211,6 @@ void pa_simSimu_SetSelectCard
  *
  * @return
  * - LE_OK            The function succeeded.
- * - LE_FAULT         on failure.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_SelectCard
@@ -228,7 +227,6 @@ le_result_t pa_sim_SelectCard
 /**
  * This function gets the card on which operations are operated.
  *
- * @return LE_FAULT         The function failed.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -396,9 +394,7 @@ void pa_simSimu_SetEID
  * This function gets the card identification (ICCID).
  *
  * @return
- *      \return LE_NOT_POSSIBLE  The function failed to get the value.
- *      \return LE_COMM_ERROR    The communication device has returned an error.
- *      \return LE_TIMEOUT       No response was received from the SIM card.
+ *      \return LE_FAULT         The function failed to get the value.
  *      \return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -414,7 +410,7 @@ le_result_t pa_sim_GetCardIdentification
         case LE_SIM_READY:
             break;
         default:
-            return LE_NOT_POSSIBLE;
+            return LE_FAULT;
     }
 
     le_utf8_Copy(iccid, Iccid, sizeof(pa_sim_CardId_t), NULL);
@@ -454,9 +450,7 @@ static void SetIMSIFromString
  * This function gets the International Mobile Subscriber Identity (IMSI).
  *
  * @return
- *      \return LE_NOT_POSSIBLE  The function failed to get the value.
- *      \return LE_COMM_ERROR    The communication device has returned an error.
- *      \return LE_TIMEOUT       No response was received from the SIM card.
+ *      \return LE_FAULT         The function failed to get the value.
  *      \return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -470,7 +464,7 @@ le_result_t pa_sim_GetIMSI
         case LE_SIM_READY:
             break;
         default:
-            return LE_NOT_POSSIBLE;
+            return LE_FAULT;
     }
 
     le_utf8_Copy(imsi, Imsi, sizeof(pa_sim_Imsi_t), NULL);
@@ -484,9 +478,6 @@ le_result_t pa_sim_GetIMSI
  *
  *
  * @return
- *      \return LE_NOT_POSSIBLE  The function failed to get the value.
- *      \return LE_COMM_ERROR    The communication device has returned an error.
- *      \return LE_TIMEOUT       No response was received from the SIM card.
  *      \return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -507,7 +498,6 @@ le_result_t pa_sim_GetState
  *
  * @return LE_OK            The function succeeded.
  * @return LE_FAULT         The function failed.
- * @return LE_UNSUPPORTED   The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_GetCardEID
@@ -574,9 +564,7 @@ le_result_t pa_sim_RemoveNewStateHandler
  *
  * @return
  *      \return LE_BAD_PARAMETER The parameter is invalid.
- *      \return LE_NOT_POSSIBLE  The function failed to enter the value.
- *      \return LE_COMM_ERROR    The communication device has returned an error.
- *      \return LE_TIMEOUT       No response was received from the SIM card.
+ *      \return LE_FAULT         The function failed to enter the value.
  *      \return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -591,7 +579,7 @@ le_result_t pa_sim_EnterPIN
         case LE_SIM_INSERTED:
             break;
         default:
-            return LE_NOT_POSSIBLE;
+            return LE_FAULT;
     }
 
     // add a function to check the PIN
@@ -625,10 +613,8 @@ le_result_t pa_sim_EnterPIN
  * All depends on SIM state which must be retrieved by @ref pa_sim_GetState
  *
  * @return
- *      \return LE_NOT_POSSIBLE  The function failed to set the value.
+ *      \return LE_FAULT         The function failed to set the value.
  *      \return LE_BAD_PARAMETER The parameters are invalid.
- *      \return LE_COMM_ERROR    The communication device has returned an error.
- *      \return LE_TIMEOUT       No response was received from the SIM card.
  *      \return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -644,7 +630,7 @@ le_result_t pa_sim_EnterPUK
         case LE_SIM_BLOCKED:
             break;
         default:
-            return LE_NOT_POSSIBLE;
+            return LE_FAULT;
     }
 
     /* Check PUK code is valid */
@@ -678,10 +664,7 @@ le_result_t pa_sim_EnterPUK
  *
  *
  * @return
- *      \return LE_NOT_POSSIBLE  The function failed to get the value.
- *      \return LE_BAD_PARAMETER The 'type' parameter is invalid.
- *      \return LE_COMM_ERROR    The communication device has returned an error.
- *      \return LE_TIMEOUT       No response was received from the SIM card.
+ *      \return LE_FAULT         The function failed to get the value.
  *      \return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -695,7 +678,7 @@ le_result_t pa_sim_GetPINRemainingAttempts
     {
         case LE_SIM_BUSY:
         case LE_SIM_STATE_UNKNOWN:
-            return LE_NOT_POSSIBLE;
+            return LE_FAULT;
         default:
         break;
     }
@@ -710,10 +693,7 @@ le_result_t pa_sim_GetPINRemainingAttempts
  *
  *
  * @return
- *      \return LE_NOT_POSSIBLE  The function failed to get the value.
- *      \return LE_BAD_PARAMETER The 'type' parameter is invalid.
- *      \return LE_COMM_ERROR    The communication device has returned an error.
- *      \return LE_TIMEOUT       No response was received from the SIM card.
+ *      \return LE_FAULT         The function failed to get the value.
  *      \return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -727,7 +707,7 @@ le_result_t pa_sim_GetPUKRemainingAttempts
     {
         case LE_SIM_BUSY:
         case LE_SIM_STATE_UNKNOWN:
-            return LE_NOT_POSSIBLE;
+            return LE_FAULT;
         default:
         break;
     }
@@ -741,10 +721,7 @@ le_result_t pa_sim_GetPUKRemainingAttempts
  * This function change a code.
  *
  * @return
- *      \return LE_NOT_POSSIBLE  The function failed to set the value.
- *      \return LE_BAD_PARAMETER The parameters are invalid.
- *      \return LE_COMM_ERROR    The communication device has returned an error.
- *      \return LE_TIMEOUT       No response was received from the SIM card.
+ *      \return LE_FAULT         The function failed to set the value.
  *      \return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -760,7 +737,7 @@ le_result_t pa_sim_ChangePIN
         case LE_SIM_READY:
             break;
         default:
-            return LE_NOT_POSSIBLE;
+            return LE_FAULT;
     }
 
     if (strncmp(Pin, oldcode, strlen(Pin)) != 0)
@@ -777,10 +754,7 @@ le_result_t pa_sim_ChangePIN
  *
  *
  * @return
- *      \return LE_NOT_POSSIBLE  The function failed to set the value.
- *      \return LE_BAD_PARAMETER The parameters are invalid.
- *      \return LE_COMM_ERROR    The communication device has returned an error.
- *      \return LE_TIMEOUT       No response was received from the SIM card.
+ *      \return LE_FAULT         The function failed to set the value.
  *      \return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -795,12 +769,12 @@ le_result_t pa_sim_EnablePIN
         case LE_SIM_READY:
             break;
         default:
-            return LE_NOT_POSSIBLE;
+            return LE_FAULT;
     }
 
     if (strncmp(code,Pin,strlen(Pin)) != 0)
     {
-        return LE_NOT_POSSIBLE;
+        return LE_FAULT;
     }
 
     pa_simSimu_SetPINSecurity(true);
@@ -814,10 +788,8 @@ le_result_t pa_sim_EnablePIN
  *
  *
  * @return
- *      \return LE_NOT_POSSIBLE  The function failed to set the value.
+ *      \return LE_FAULT         The function failed to set the value.
  *      \return LE_BAD_PARAMETER The parameters are invalid.
- *      \return LE_COMM_ERROR    The communication device has returned an error.
- *      \return LE_TIMEOUT       No response was received from the SIM card.
  *      \return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -836,12 +808,12 @@ le_result_t pa_sim_DisablePIN
         case LE_SIM_READY:
             break;
         default:
-            return LE_NOT_POSSIBLE;
+            return LE_FAULT;
     }
 
     if (strncmp(code,Pin,strlen(Pin)) != 0)
     {
-        return LE_NOT_POSSIBLE;
+        return LE_FAULT;
     }
 
     pa_simSimu_SetPINSecurity(false);
@@ -870,7 +842,7 @@ void pa_simSimu_SetSubscriberPhoneNumber
  * @return
  *      - LE_OK on success
  *      - LE_OVERFLOW if the Phone Number can't fit in phoneNumberStr
- *      - LE_NOT_POSSIBLE on any other failure
+ *      - LE_FAULT on any other failure
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_GetSubscriberPhoneNumber
@@ -884,7 +856,7 @@ le_result_t pa_sim_GetSubscriberPhoneNumber
         case LE_SIM_READY:
             break;
         default:
-            return LE_NOT_POSSIBLE;
+            return LE_FAULT;
     }
 
     if (phoneNumberStrSize < strlen(PhoneNumber))
@@ -917,7 +889,7 @@ void pa_simSimu_SetHomeNetworkOperator
  * @return
  *      - LE_OK on success
  *      - LE_OVERFLOW if the Home Network Name can't fit in nameStr
- *      - LE_NOT_POSSIBLE on any other failure
+ *      - LE_FAULT on any other failure
  *
  * @note If the caller is passing a bad pointer into this function, it is a fatal error, the
  *       function will not return.
@@ -1069,7 +1041,6 @@ le_result_t pa_sim_OpenLogicalChannel
  *
  * @return
  *      - LE_OK on success
- *      - LE_FAULT for unexpected error
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_CloseLogicalChannel
@@ -1100,8 +1071,6 @@ void pa_simSimu_SetSIMAccessTest
  *
  * @return
  *      - LE_OK on success
- *      - LE_OVERFLOW the response length exceed the maximum buffer length.
- *      - LE_FAULT for unexpected error
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_SendApdu
@@ -1138,7 +1107,6 @@ le_result_t pa_sim_SendApdu
  *
  * @return
  *      - LE_OK on success
- *      - LE_FAULT for unexpected error
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_Refresh
@@ -1305,12 +1273,6 @@ le_result_t pa_simSimu_Init
  *
  * @return
  *      - LE_OK             Function succeeded.
- *      - LE_FAULT          The function failed.
- *      - LE_BAD_PARAMETER  A parameter is invalid.
- *      - LE_NOT_FOUND      - The function failed to select the SIM card for this operation
- *                          - The requested SIM file is not found
- *      - LE_OVERFLOW       Response buffer is too small to copy the SIM answer.
- *      - LE_UNSUPPORTED    The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_SendCommand
@@ -1341,8 +1303,6 @@ le_result_t pa_sim_SendCommand
  *
  * @return
  *      - LE_OK          On success.
- *      - LE_FAULT       On failure.
- *      - LE_UNSUPPORTED The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_Reset
@@ -1360,9 +1320,6 @@ le_result_t pa_sim_Reset
  *
  * @return
  *      - LE_OK             On success.
- *      - LE_FAULT          On failure.
- *      - LE_BAD_PARAMETER  A parameter is invalid.
- *      - LE_UNSUPPORTED    The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_WriteFPLMNList
@@ -1393,9 +1350,6 @@ le_result_t pa_sim_WriteFPLMNList
  *
  * @return
  *      - LE_OK             On success.
- *      - LE_FAULT          On failure.
- *      - LE_BAD_PARAMETER  A parameter is invalid.
- *      - LE_UNSUPPORTED    The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_CountFPLMNOperators
@@ -1413,9 +1367,6 @@ le_result_t pa_sim_CountFPLMNOperators
  *
  * @return
  *      - LE_OK             On success.
- *      - LE_NOT_FOUND      If no FPLMN network is available.
- *      - LE_BAD_PARAMETER  A parameter is invalid.
- *      - LE_UNSUPPORTED    The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_ReadFPLMNOperators
@@ -1448,7 +1399,6 @@ le_result_t pa_sim_ReadFPLMNOperators
  * @return
  *      - LE_OK             On success.
  *      - LE_BAD_PARAMETER  A parameter is invalid.
- *      - LE_UNSUPPORTED    The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_GetLastStkStatus
@@ -1475,8 +1425,6 @@ le_result_t pa_sim_GetLastStkStatus
  *
  * @return
  *      - LE_OK          Function succeeded.
- *      - LE_FAULT       Function failed to execute.
- *      - LE_UNSUPPORTED The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_SetAutomaticSelection
@@ -1494,9 +1442,7 @@ le_result_t pa_sim_SetAutomaticSelection
  *
  * @return
  *      - LE_OK             Function succeeded.
- *      - LE_FAULT          Function failed to execute.
  *      - LE_BAD_PARAMETER  Invalid parameter.
- *      - LE_UNSUPPORTED    The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_sim_GetAutomaticSelection

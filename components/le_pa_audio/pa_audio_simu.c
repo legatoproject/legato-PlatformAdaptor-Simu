@@ -106,7 +106,6 @@ COMPONENT_INIT
 /**
  * This function must be called to set the DSP Audio path
  *
- * @return LE_FAULT         The function failed.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -209,7 +208,6 @@ le_result_t pa_audioSimu_CheckAudioPathReseted
 /**
  * This function must be called to flag for reset the DSP Audio path
  *
- * @return LE_FAULT         The function failed.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -251,7 +249,6 @@ le_result_t pa_audio_SetGain
 /**
  * This function must be called to get the interface gain
  *
- * @return LE_FAULT         The function failed to get the interface gain
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -268,7 +265,6 @@ le_result_t pa_audio_GetGain
 /**
  * This function must be called to set the timeslot number of a PCM interface.
  *
- * @return LE_FAULT         The function failed to set the timeslot number.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -285,7 +281,6 @@ le_result_t pa_audio_SetPcmTimeSlot
 /**
  * This function must be called to configure an interface as a Master.
  *
- * @return LE_FAULT         The function failed to configure the interface as a Master.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -301,7 +296,6 @@ le_result_t pa_audio_SetMasterMode
 /**
  * This function must be called to configure an interface as a Slave.
  *
- * @return LE_FAULT         The function failed to configure the interface as a Slave.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -317,7 +311,6 @@ le_result_t pa_audio_SetSlaveMode
 /**
  * This function must be called to set the channel mode of an I2S interface.
  *
- * @return LE_FAULT         The function failed to set the channel mode.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -335,8 +328,6 @@ le_result_t pa_audio_SetI2sChannelMode
  * This function must be called to start the DTMF Decoder.
  *
  * @return LE_OK            The decoder is started
- * @return LE_BAD_PARAMETER The interface is not valid
- * @return LE_NOT_POSSIBLE  On other errors
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_audio_StartDtmfDecoder
@@ -354,8 +345,6 @@ le_result_t pa_audio_StartDtmfDecoder
  * This function must be called to stop the DTMF Decoder.
  *
  * @return LE_OK            The decoder is started
- * @return LE_BAD_PARAMETER The interface is not valid
- * @return LE_NOT_POSSIBLE  On other errors
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_audio_StopDtmfDecoder
@@ -372,7 +361,6 @@ le_result_t pa_audio_StopDtmfDecoder
 /**
  * This function must be called to enable or disable the Noise Suppressor.
  *
- * @return LE_FAULT         Function failed.
  * @return LE_OK            Function succeeded.
  *
  */
@@ -399,7 +387,6 @@ le_result_t pa_audio_NoiseSuppressorSwitch
 /**
  * This function must be called to enable or disable the Echo Canceller.
  *
- * @return LE_FAULT         Function failed.
  * @return LE_OK            Function succeeded.
  *
  */
@@ -427,7 +414,6 @@ le_result_t pa_audio_EchoCancellerSwitch
  * downlink or uplink audio path.
  *
  * @return LE_FAULT         Function failed.
- * @return LE_OK            Function succeeded.
  *
  */
 //--------------------------------------------------------------------------------------------------
@@ -446,7 +432,6 @@ le_result_t pa_audio_FirFilterSwitch
  * the downlink or uplink audio path.
  *
  * @return LE_FAULT         Function failed.
- * @return LE_OK            Function succeeded.
  *
  */
 //--------------------------------------------------------------------------------------------------
@@ -465,7 +450,6 @@ le_result_t pa_audio_IirFilterSwitch
  * audio stream.
  *
  * @return LE_FAULT         Function failed.
- * @return LE_OK            Function succeeded.
  *
  */
 //--------------------------------------------------------------------------------------------------
@@ -520,7 +504,6 @@ void pa_audio_RemoveDtmfStreamEventHandler
  * This function must be called to set the audio profile.
  *
  * @return LE_FAULT         Function failed.
- * @return LE_OK            Function succeeded.
  *
  */
 //--------------------------------------------------------------------------------------------------
@@ -537,7 +520,6 @@ le_result_t pa_audio_SetProfile
  * This function must be called to get the audio profile in use.
  *
  * @return LE_FAULT         Function failed.
- * @return LE_OK            Function succeeded.
  *
  */
 //--------------------------------------------------------------------------------------------------
@@ -707,8 +689,6 @@ void pa_audioSimu_PlaySignallingDtmf
  * Play signalling DTMFs
  *
  * @return LE_OK            on success
- * @return LE_DUPLICATE     The thread is already started
- * @return LE_FAULT         on failure
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_audio_PlaySignallingDtmf
@@ -800,7 +780,6 @@ void pa_audio_ReleasePaParameters
 /**
  * Mute/Unmute the Call Waiting Tone.
  *
- * @return LE_FAULT         The function failed.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -816,7 +795,6 @@ le_result_t pa_audio_MuteCallWaitingTone
 /**
  * This function must be called to get the Noise Suppressor status
  *
- * @return LE_FAULT         The function failed to get the interface NS status
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -834,7 +812,6 @@ le_result_t pa_audio_GetNoiseSuppressorStatus
 /**
  * This function must be called to get the Echo Canceller status
  *
- * @return LE_FAULT         The function failed to get the interface EC status
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
