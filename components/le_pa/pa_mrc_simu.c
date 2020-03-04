@@ -397,6 +397,7 @@ le_result_t pa_mrc_SetRadioPower
 /**
  * This function must be called to get the Radio Module power state.
  *
+ * @return LE_FAULT  The function failed.
  * @return LE_OK     The function succeed.
  */
 //--------------------------------------------------------------------------------------------------
@@ -489,7 +490,11 @@ void pa_mrc_RemoveNetworkRegHandler
 /**
  * This function configures the Network registration setting.
  *
- * @return LE_FAULT         The function failed to configure the Network registration setting.
+ * @return LE_NOT_POSSIBLE  The function failed to configure the Network registration setting.
+ * @return LE_BAD_PARAMETER The parameters are invalid.
+ * @return LE_OUT_OF_RANGE  The parameters values are not in the allowed range.
+ * @return LE_COMM_ERROR    The communication device has returned an error.
+ * @return LE_TIMEOUT       No response was received from the Modem.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -503,13 +508,16 @@ le_result_t pa_mrc_ConfigureNetworkReg
         return LE_OK;
     }
 
-    return LE_FAULT;
+    return LE_NOT_POSSIBLE;
 }
 
 //--------------------------------------------------------------------------------------------------
 /**
  * This function gets the Network registration setting.
  *
+ * @return LE_NOT_POSSIBLE The function failed to get the Network registration setting.
+ * @return LE_COMM_ERROR   The communication device has returned an error.
+ * @return LE_TIMEOUT      No response was received from the Modem.
  * @return LE_OK           The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -526,6 +534,9 @@ le_result_t pa_mrc_GetNetworkRegConfig
 /**
  * This function gets the Network registration state.
  *
+ * @return LE_NOT_POSSIBLE The function failed to get the Network registration state.
+ * @return LE_COMM_ERROR   The communication device has returned an error.
+ * @return LE_TIMEOUT      No response was received from the Modem.
  * @return LE_OK           The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -542,6 +553,9 @@ le_result_t pa_mrc_GetNetworkRegState
 /**
  * This function gets the Packet switch registration state.
  *
+ * @return LE_BAD_PARAMETER Bad parameter passed to the function
+ * @return LE_FAULT         The function failed.
+ * @return LE_TIMEOUT       No response was received.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -574,7 +588,10 @@ int32_t pa_mrc_GetPlatformSpecificRegistrationErrorCode
 /**
  * This function gets the Signal Strength information.
  *
+ * @return LE_BAD_PARAMETER Bad parameter passed to the function
  * @return LE_OUT_OF_RANGE  The signal strength values are not known or not detectable.
+ * @return LE_NOT_POSSIBLE  The function failed.
+ * @return LE_TIMEOUT       No response was received.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -599,7 +616,7 @@ le_result_t pa_mrc_GetSignalStrength
  * @return
  *      - LE_OK on success
  *      - LE_OVERFLOW if the current network name can't fit in nameStr
- *      - LE_FAULT on any other failure
+ *      - LE_NOT_POSSIBLE on any other failure
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetCurrentNetwork
@@ -617,7 +634,7 @@ le_result_t pa_mrc_GetCurrentNetwork
     if (RadioPower != LE_ON)
     {
         *nameStr = '\0';
-        return LE_FAULT;
+        return LE_NOT_POSSIBLE;
     }
 
     if (nameStr != NULL)
@@ -715,6 +732,8 @@ void pa_mrc_DeletePlmnScanInformation
  * This function must be called to perform a network scan.
  *
  * @return LE_FAULT         The function failed.
+ * @return LE_TIMEOUT       No response was received.
+ * @return LE_COMM_ERROR    Radio link failure occurred.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -727,7 +746,7 @@ le_result_t pa_mrc_PerformNetworkScan
 {
     if(RadioPower != LE_ON)
     {
-        return LE_FAULT;
+        return LE_NOT_POSSIBLE;
     }
 
     if(scanInformationListPtr == NULL)
@@ -779,7 +798,7 @@ le_result_t pa_mrc_PerformNetworkScan
  * @return
  *      - LE_OK on success
  *      - LE_OVERFLOW if the operator name would not fit in buffer
- *      - LE_FAULT for all other errors
+ *      - LE_NOT_POSSIBLE for all other errors
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetScanInformationName
@@ -791,7 +810,7 @@ le_result_t pa_mrc_GetScanInformationName
 {
     if ((!scanInformationPtr) || (!namePtr))
     {
-        return LE_FAULT;
+        return LE_NOT_POSSIBLE;
     }
 
     // @TODO Handle other names than default SIM MCC/MNC
@@ -801,7 +820,7 @@ le_result_t pa_mrc_GetScanInformationName
         return le_utf8_Copy(namePtr, PA_SIMU_MRC_DEFAULT_NAME, nameSize, NULL);
     }
 
-    return LE_FAULT;
+    return LE_NOT_POSSIBLE;
 }
 
 
@@ -810,6 +829,7 @@ le_result_t pa_mrc_GetScanInformationName
  * This function must be called to get the number of preferred operators present in the list.
  *
  * @return
+ *      - LE_OK on success
  *      - LE_FAULT on failure
  */
 //--------------------------------------------------------------------------------------------------
@@ -828,6 +848,7 @@ le_result_t pa_mrc_CountPreferredOperators
  * This function must be called to get the current preferred operators.
  *
  * @return
+ *      - LE_OK on success
  *      - LE_NOT_FOUND if Preferred operator list is not available
  */
 //--------------------------------------------------------------------------------------------------
@@ -849,6 +870,7 @@ le_result_t pa_mrc_GetPreferredOperators
  * This function must be called to apply the preferred list into the modem
  *
  * @return
+ *      - LE_OK             on success
  *      - LE_FAULT          for all other errors
  */
 //--------------------------------------------------------------------------------------------------
@@ -904,7 +926,7 @@ le_result_t pa_mrc_GetServingCellGsmBsic
 /**
  * This function must be called to register on a mobile network [mcc;mnc]
  *
- * @return LE_FAULT         The function failed to register.
+ * @return LE_NOT_POSSIBLE  The function failed to register.
  * @return LE_OK            The function succeeded to register,
  */
 //--------------------------------------------------------------------------------------------------
@@ -962,6 +984,7 @@ void pa_mrcSimu_SetRadioAccessTechInUse
 /**
  * This function gets the Radio Access Technology.
  *
+ * @return LE_FAULT The function failed to get the Signal Quality information.
  * @return LE_OK    The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -1036,6 +1059,7 @@ le_result_t pa_mrc_GetRatPreferences
  *
  * @return
  * - LE_OK              on success
+ * - LE_FAULT           on failure
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_SetBandPreferences
@@ -1053,6 +1077,7 @@ le_result_t pa_mrc_SetBandPreferences
  *
  * @return
  * - LE_OK              on success
+ * - LE_FAULT           on failure
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetBandPreferences
@@ -1071,6 +1096,7 @@ le_result_t pa_mrc_GetBandPreferences
  *
  * @return
  * - LE_OK              on success
+ * - LE_FAULT           on failure
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_SetLteBandPreferences
@@ -1089,6 +1115,7 @@ le_result_t pa_mrc_SetLteBandPreferences
  *
  * @return
  * - LE_OK              on success
+ * - LE_FAULT           on failure
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetLteBandPreferences
@@ -1106,6 +1133,8 @@ le_result_t pa_mrc_GetLteBandPreferences
  *
  * @return
  * - LE_OK           On success
+ * - LE_FAULT        On failure
+ * - LE_UNSUPPORTED  The platform doesn't support setting TD-SCDMA Band preferences.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_SetTdScdmaBandPreferences
@@ -1123,6 +1152,8 @@ le_result_t pa_mrc_SetTdScdmaBandPreferences
  *
  * @return
  * - LE_OK           On success
+ * - LE_FAULT        On failure
+ * - LE_UNSUPPORTED  The platform doesn't support getting TD-SCDMA Band preferences.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetTdScdmaBandPreferences
@@ -1368,6 +1399,7 @@ le_result_t pa_mrc_GetServingCellLocAreaCode
  * This function must be called to get the Tracking Area Code of the serving cell.
  *
  * @return
+ *  - LE_FAULT  Function failed.
  *  - LE_OK     Function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -1386,6 +1418,8 @@ le_result_t pa_mrc_GetServingCellLteTracAreaCode
  *
  * @return
  *  - LE_OK              on success
+ *  - LE_FAULT           on failure
+ *  - LE_UNSUPPORTED     The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetBandCapabilities
@@ -1403,6 +1437,8 @@ le_result_t pa_mrc_GetBandCapabilities
  *
  * @return
  *  - LE_OK              on success
+ *  - LE_FAULT           on failure
+ *  - LE_UNSUPPORTED     The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetLteBandCapabilities
@@ -1421,6 +1457,8 @@ le_result_t pa_mrc_GetLteBandCapabilities
  *
  * @return
  *  - LE_OK              on success
+ *  - LE_FAULT           on failure
+ *  - LE_UNSUPPORTED     The platform does not support this operation.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetTdScdmaBandCapabilities
@@ -1681,6 +1719,8 @@ le_result_t pa_mrc_GetJammingDetection
  *
  * @return
  *  - LE_OK             The function succeeded.
+ *  - LE_FAULT          The function failed.
+ *  - LE_UNSUPPORTED    The feature is not supported.
  *  - LE_OUT_OF_RANGE   The provided index is out of range.
  */
 //--------------------------------------------------------------------------------------------------
@@ -1705,6 +1745,7 @@ le_result_t pa_mrc_SetSarBackoffState
  * @return
  *  - LE_OK             The function succeeded.
  *  - LE_FAULT          The function failed.
+ *  - LE_UNSUPPORTED    The feature is not supported.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mrc_GetSarBackoffState
@@ -1726,6 +1767,9 @@ le_result_t pa_mrc_GetSarBackoffState
  * This function retrieves the network time from the modem.
  *
  * @return
+ * - LE_FAULT         The function failed to get the value.
+ * - LE_UNAVAILABLE   No valid user time was returned.
+ * - LE_UNSUPPORTED   The feature is not supported.
  * - LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------

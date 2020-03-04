@@ -209,6 +209,9 @@ le_result_t pa_mcc_VoiceDial
  * This function must be called to answer a call.
  *
  * @return
+ *  - LE_FAULT        The function failed to answer a call.
+ *  - LE_COMM_ERROR   The communication device has returned an error.
+ *  - LE_TIMEOUT      No response was received from the Modem.
  *  - LE_OK           The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -225,6 +228,9 @@ le_result_t pa_mcc_Answer
  * This function must be called to disconnect the remote user.
  *
  * @return
+ *  - LE_FAULT        The function failed to disconnect the remote user.
+ *  - LE_COMM_ERROR   The communication device has returned an error.
+ *  - LE_TIMEOUT      No response was received from the Modem.
  *  - LE_OK           The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -240,6 +246,8 @@ le_result_t pa_mcc_HangUp
 /**
  * This function must be called to end all the ongoing calls.
  *
+ * @return LE_NOT_POSSIBLE  The function failed.
+ * @return LE_TIMEOUT       No response was received.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -257,6 +265,8 @@ le_result_t pa_mcc_HangUpAll
  *
  * @return
  *     - LE_OK        The function succeed.
+ *     - LE_FAULT     The function failed.
+ *
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mcc_SetCallWaitingService
@@ -276,6 +286,8 @@ le_result_t pa_mcc_SetCallWaitingService
  *
  * @return
  *     - LE_OK        The function succeed.
+ *     - LE_FAULT     The function failed.
+ *
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mcc_GetCallWaitingService
@@ -294,6 +306,8 @@ le_result_t pa_mcc_GetCallWaitingService
  *
  * @return
  *     - LE_OK        The function succeed.
+ *     - LE_FAULT     The function failed.
+ *
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mcc_ActivateCall
@@ -310,6 +324,7 @@ le_result_t pa_mcc_ActivateCall
  *
  * @return
  *     - LE_OK       The function succeeded.
+ *     - LE_FAULT    The function failed.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_mcc_SetAmrWbCapability
