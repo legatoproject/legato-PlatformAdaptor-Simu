@@ -289,7 +289,7 @@ void pa_fwupdateSimu_ReportBadImage
  *      - LE_OK              On success
  *      - LE_BAD_PARAMETER   If an input parameter is not valid
  *      - LE_TIMEOUT         After 900 seconds without data received
- *      - LE_NOT_PERMITTED   The systems are not synced
+ *      - LE_NOT_POSSIBLE    The systems are not synced
  *      - LE_FAULT           On failure
  */
 //--------------------------------------------------------------------------------------------------
@@ -306,7 +306,7 @@ le_result_t pa_fwupdate_Download
 
     if (IsSyncLocal == false)
     {
-        return LE_NOT_PERMITTED;
+        return LE_NOT_POSSIBLE;
     }
 
     return ReturnCode;
@@ -814,6 +814,8 @@ void pa_fwupdate_StopBadImageIndication
  *
  * @return
  *      - LE_OK            The access is granted to fwupdate and update can begin
+ *      - LE_UNAVAILABLE   The access is not granted because flash is in use
+ *      - LE_FAULT         If an error occurs
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_fwupdate_RequestUpdate
