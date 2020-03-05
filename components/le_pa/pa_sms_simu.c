@@ -183,7 +183,6 @@ le_result_t pa_sms_SetPreferredStorage
 /**
  * This function is called to get the preferred SMS storage area.
  *
- * @return LE_FAULT         The function failed.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -200,8 +199,6 @@ le_result_t pa_sms_GetPreferredStorage
 /**
  * This function must be called to register a handler for a new message reception handling.
  *
- * @return LE_BAD_PARAMETER The parameter is invalid.
- * @return LE_NOT_POSSIBLE  The function failed to register a new handler.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -224,7 +221,6 @@ le_result_t pa_sms_SetNewMsgHandler
 /**
  * This function must be called to unregister the handler for a new message reception handling.
  *
- * @return LE_NOT_POSSIBLE  The function failed to unregister the handler.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -382,7 +378,7 @@ void pa_sms_RemoveStorageStatusHandler
  * This function sends a message in PDU mode.
  *
  * @return LE_OK              The function succeeded.
- * @return LE_NOT_POSSIBLE    The function failed to send a message in PDU mode.
+ * @return LE_FAULT           The function failed to send a message in PDU mode.
  * @return LE_TIMEOUT         No response was received from the Modem.
  * @return a positive value   The function succeeded. The value represents the message reference.
  */
@@ -406,7 +402,7 @@ le_result_t pa_sms_SendPduMsg
     if (!mrc_simu_IsOnline())
     {
         LE_WARN("Not sending message because we're offline.");
-        return LE_NOT_POSSIBLE;
+        return LE_FAULT;
     }
 
     LE_INFO("Sending PDU message (length=%u protocol=%u)", length, protocol);
@@ -444,9 +440,8 @@ le_result_t pa_sms_SendPduMsg
 /**
  * This function gets the message from the preferred message storage.
  *
- * @return LE_NOT_POSSIBLE The function failed to get the message from the preferred message
+ * @return LE_FAULT        The function failed to get the message from the preferred message
  *                         storage.
- * @return LE_TIMEOUT      No response was received from the Modem.
  * @return LE_OK           The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -463,12 +458,12 @@ le_result_t pa_sms_RdPDUMsgFromMem
     if (NULL == smsMsgPtr)
     {
         LE_ERROR("Trying to access invalid SMS storage storage[%u] index[%u]", storage, index);
-        return LE_NOT_POSSIBLE;
+        return LE_FAULT;
     }
 
     if (LE_SMS_STATUS_UNKNOWN == smsMsgPtr->pduContent.status)
     {
-        return LE_NOT_POSSIBLE;
+        return LE_FAULT;
     }
 
     memcpy(msgPtr, &(smsMsgPtr->pduContent), sizeof(pa_sms_Pdu_t));
@@ -481,9 +476,6 @@ le_result_t pa_sms_RdPDUMsgFromMem
  * This function gets the indexes of messages stored in the preferred memory for a specific
  * status.
  *
- * @return LE_NOT_POSSIBLE   The function failed to get the indexes of messages stored in the
- *                           preferred memory.
- * @return LE_TIMEOUT        No response was received from the Modem.
  * @return LE_OK             The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -545,9 +537,8 @@ le_result_t pa_sms_ListMsgFromMem
 /**
  * This function deletes one specific Message from preferred message storage.
  *
- * @return LE_NOT_POSSIBLE   The function failed to delete one specific Message from preferred
+ * @return LE_FAULT          The function failed to delete one specific Message from preferred
  *                           message storage.
- * @return LE_TIMEOUT        No response was received from the Modem.
  * @return LE_OK             The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -564,7 +555,7 @@ le_result_t pa_sms_DelMsgFromMem
 
     if (NULL == smsMsgPtr)
     {
-        return LE_NOT_POSSIBLE;
+        return LE_FAULT;
     }
 
     smsMsgPtr->pduContent.status = LE_SMS_STATUS_UNKNOWN;
@@ -591,9 +582,6 @@ le_result_t pa_sms_DelMsgFromMem
 /**
  * This function deletes all Messages from preferred message storage.
  *
- * @return LE_NOT_POSSIBLE The function failed to delete all Messages from preferred message storage.
- * @return LE_COMM_ERROR   The communication device has returned an error.
- * @return LE_TIMEOUT      No response was received from the Modem.
  * @return LE_OK           The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -623,8 +611,7 @@ le_result_t pa_sms_DelAllMsg
 /**
  * This function changes the message status.
  *
- * @return LE_NOT_POSSIBLE The function failed.
- * @return LE_TIMEOUT      No response was received from the Modem.
+ * @return LE_FAULT        The function failed.
  * @return LE_OK           The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -640,7 +627,7 @@ le_result_t pa_sms_ChangeMessageStatus
 
     if (NULL == smsMsgPtr)
     {
-        return LE_NOT_POSSIBLE;
+        return LE_FAULT;
     }
 
     LE_DEBUG("Changing message status storage[%u] index[%u] status [%u] -> [%u]",
@@ -673,8 +660,7 @@ le_result_t pa_sms_GetSmsc
 /**
  * This function must be called to set the SMS center.
  *
- * @return LE_NOT_POSSIBLE The function failed.
- * @return LE_TIMEOUT      No response was received from the Modem.
+ * @return LE_FAULT        The function failed.
  * @return LE_OK           The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -769,8 +755,7 @@ static le_result_t SmsServerHandleRemoteMessage
 /**
  * This function handle messages originating from the Legato world.
  *
- * @return LE_NO_MEMORY    There is no more memory available to handle this message.
- * @return LE_NOT_POSSIBLE There was an error when handling the message.
+ * @return LE_FAULT        There was an error when handling the message.
  * @return LE_OK           The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -807,7 +792,7 @@ static le_result_t SmsServerHandleLocalMessage
         if(res != LE_OK)
         {
             LE_ERROR("Unable to get subscriber phone number.");
-            return LE_NOT_POSSIBLE;
+            return LE_FAULT;
         }
 
         res = smsPdu_Decode(sourceMsgPtr->protocol,
@@ -818,13 +803,13 @@ static le_result_t SmsServerHandleLocalMessage
         if(res != LE_OK)
         {
             LE_ERROR("Unable to decode message.");
-            return LE_NOT_POSSIBLE;
+            return LE_FAULT;
         }
 
         if(decodedMessage.type != PA_SMS_SUBMIT)
         {
             LE_ERROR("Unexpected type of PDU message.");
-            return LE_NOT_POSSIBLE;
+            return LE_FAULT;
         }
 
         /* Destination and local number are the same */
@@ -853,7 +838,7 @@ static le_result_t SmsServerHandleLocalMessage
 
                 default:
                     LE_ERROR("Unexpected format");
-                    return LE_NOT_POSSIBLE;
+                    return LE_FAULT;
             }
 
             LE_DEBUG("Sending message to self: len[%u] da[%s] format[%d] encoding[%d] protocol[%u]",
@@ -876,7 +861,7 @@ static le_result_t SmsServerHandleLocalMessage
             if(res != LE_OK)
             {
                 LE_ERROR("Unable to encode message.");
-                return LE_NOT_POSSIBLE;
+                return LE_FAULT;
             }
 
             txBuffer.header.protocol = sourceMsgPtr->protocol;
@@ -1131,7 +1116,6 @@ le_result_t sms_simu_Init
  * Activate Cell Broadcast message notification
  *
  * @return
- *  - LE_FAULT         Function failed.
  *  - LE_OK            Function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -1148,7 +1132,6 @@ le_result_t pa_sms_ActivateCellBroadcast
  * Deactivate Cell Broadcast message notification
  *
  * @return
- *  - LE_FAULT         Function failed.
  *  - LE_OK            Function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -1271,7 +1254,6 @@ le_result_t pa_sms_RemoveCellBroadcastIds
  * Clear Cell Broadcast message Identifiers range.
  *
  * @return
- *  - LE_FAULT         Function failed.
  *  - LE_OK            Function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -1398,7 +1380,6 @@ le_result_t pa_sms_RemoveCdmaCellBroadcastServices
  * Clear CDMA Cell Broadcast category services.
  *
  * @return
- *  - LE_FAULT         Function failed.
  *  - LE_OK            Function succeeded.
  */
 //--------------------------------------------------------------------------------------------------

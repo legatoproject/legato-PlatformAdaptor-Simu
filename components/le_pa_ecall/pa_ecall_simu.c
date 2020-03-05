@@ -37,7 +37,7 @@ static le_ecall_OpMode_t    OperationMode = LE_ECALL_NORMAL_MODE;
 /**
  * This function must be called to initialize the ecall module
  *
- * @return LE_NOT_POSSIBLE  The function failed to initialize the module.
+ * @return LE_FAULT         The function failed to initialize the module.
  * @return LE_OK            The function succeeded.
  */
 //--------------------------------------------------------------------------------------------------
@@ -57,7 +57,6 @@ le_result_t ecall_simu_Init
  * This function initializes the platform adapter layer for eCall services.
  *
  * @return LE_OK if successful.
- * @return LE_FAULT if unsuccessful.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_Init
@@ -163,7 +162,6 @@ le_result_t pa_ecall_GetPsapNumber
 /**
  * This function must be called to set push/pull transmission mode.
  *
- * @return LE_FAULT  The function failed.
  * @return LE_OK     The function succeed.
  */
 //--------------------------------------------------------------------------------------------------
@@ -180,7 +178,6 @@ le_result_t pa_ecall_SetMsdTxMode
 /**
  * This function must be called to get push/pull transmission mode.
  *
- * @return LE_FAULT  The function failed.
  * @return LE_OK     The function succeed.
  */
 //--------------------------------------------------------------------------------------------------
@@ -222,7 +219,6 @@ le_result_t pa_ecall_SendMsd
  * This function must be called to start the eCall.
  * @return
  *      LE_OK if successful.
- *      LE_FAULT if unsuccessful.
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_Start
@@ -237,7 +233,6 @@ le_result_t pa_ecall_Start
 /**
  * This function must be called to end a eCall.
  *
- * @return LE_FAULT  The function failed.
  * @return LE_OK     The function succeed.
  */
 //--------------------------------------------------------------------------------------------------
@@ -253,7 +248,6 @@ le_result_t pa_ecall_End
 /**
  * This function must be called to set the eCall operation mode.
  *
- * @return LE_FAULT  The function failed.
  * @return LE_OK     The function succeed.
  */
 //--------------------------------------------------------------------------------------------------
@@ -270,7 +264,6 @@ le_result_t pa_ecall_SetOperationMode
 /**
  * This function must be called to retrieve the configured eCall operation mode.
  *
- * @return LE_FAULT  The function failed.
  * @return LE_OK     The function succeed.
  */
 //--------------------------------------------------------------------------------------------------
@@ -290,7 +283,6 @@ le_result_t pa_ecall_GetOperationMode
  *
  * @return
  *  - LE_OK on success
- *  - LE_FAULT for other failures
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_UseUSimNumbers
@@ -307,7 +299,6 @@ le_result_t pa_ecall_UseUSimNumbers
  *
  * @return
  *  - LE_OK on success
- *  - LE_FAULT on failure
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_SetNadDeregistrationTime
@@ -325,7 +316,6 @@ le_result_t pa_ecall_SetNadDeregistrationTime
  *
  * @return
  *  - LE_OK on success
- *  - LE_FAULT on failure
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_GetNadDeregistrationTime
@@ -343,8 +333,6 @@ le_result_t pa_ecall_GetNadDeregistrationTime
  *
  * @return
  *  - LE_OK on success
- *  - LE_FAULT on failure
- *  - LE_UNSUPPORTED if the function is not supported by the target
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_SetEraGlonassFallbackTime
@@ -362,8 +350,6 @@ le_result_t pa_ecall_SetEraGlonassFallbackTime
  *
  * @return
  *  - LE_OK on success
- *  - LE_FAULT on failure
- *  - LE_UNSUPPORTED if the function is not supported by the target
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_GetEraGlonassFallbackTime
@@ -381,8 +367,6 @@ le_result_t pa_ecall_GetEraGlonassFallbackTime
  *
  * @return
  *  - LE_OK on success
- *  - LE_FAULT on failure
- *  - LE_UNSUPPORTED if the function is not supported by the target
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_SetEraGlonassAutoAnswerTime
@@ -401,7 +385,6 @@ le_result_t pa_ecall_SetEraGlonassAutoAnswerTime
  * @return
  *  - LE_OK on success
  *  - LE_FAULT on failure
- *  - LE_UNSUPPORTED if the function is not supported by the target
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_GetEraGlonassAutoAnswerTime
@@ -425,8 +408,6 @@ le_result_t pa_ecall_GetEraGlonassAutoAnswerTime
  *
  * @return
  *  - LE_OK on success
- *  - LE_FAULT on failure
- *  - LE_UNSUPPORTED if the function is not supported by the target
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_SetEraGlonassMSDMaxTransmissionTime
@@ -444,8 +425,6 @@ le_result_t pa_ecall_SetEraGlonassMSDMaxTransmissionTime
  *
  * @return
  *  - LE_OK on success
- *  - LE_FAULT on failure
- *  - LE_UNSUPPORTED if the function is not supported by the target
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_SetEraGlonassPostTestRegistrationTime
@@ -464,7 +443,6 @@ le_result_t pa_ecall_SetEraGlonassPostTestRegistrationTime
  * @return
  *  - LE_OK on success
  *  - LE_FAULT on failure
- *  - LE_UNSUPPORTED if the function is not supported by the target
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_GetEraGlonassMSDMaxTransmissionTime
@@ -489,7 +467,6 @@ le_result_t pa_ecall_GetEraGlonassMSDMaxTransmissionTime
  * @return
  *  - LE_OK on success
  *  - LE_FAULT on failure
- *  - LE_UNSUPPORTED if the function is not supported by the target
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_GetEraGlonassPostTestRegistrationTime
@@ -514,7 +491,6 @@ le_result_t pa_ecall_GetEraGlonassPostTestRegistrationTime
  *
  * @return
  *  - LE_OK    on success
- *  - LE_FAULT on failure
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_UpdateSystemStandard
@@ -531,8 +507,6 @@ le_result_t pa_ecall_UpdateSystemStandard
  *
  * @return
  *  - LE_OK on success
- *  - LE_FAULT on failure
- *  - LE_UNSUPPORTED if the function is not supported by the target
  */
 //--------------------------------------------------------------------------------------------------
 le_result_t pa_ecall_TerminateRegistration
