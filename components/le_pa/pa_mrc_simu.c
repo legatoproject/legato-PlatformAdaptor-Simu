@@ -902,6 +902,22 @@ le_result_t pa_mrc_GetServingCellGsmBsic
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * This function must be called to get the serving cell primary scrambling code.
+ *
+ * @return The serving cell primary scrambling code. UINT16_MAX value is returned if the value is
+ * not available.
+ */
+//--------------------------------------------------------------------------------------------------
+uint16_t pa_mrc_GetServingCellScramblingCode
+(
+    void
+)
+{
+    return UINT16_MAX;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
  * This function must be called to register on a mobile network [mcc;mnc]
  *
  * @return LE_FAULT         The function failed to register.
