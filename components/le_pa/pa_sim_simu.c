@@ -25,6 +25,7 @@
 //--------------------------------------------------------------------------------------------------
 static uint32_t PinRemainingAttempts = PA_SIMU_SIM_DEFAULT_PIN_REMAINING_ATTEMPTS;
 static uint32_t PukRemainingAttempts = PA_SIMU_SIM_DEFAULT_PUK_REMAINING_ATTEMPTS;
+static le_sim_SimMode_t SimSelectionMode = LE_SIM_FORCE_EXTERNAL;
 static le_sim_Id_t SelectedCard = 1;
 static le_sim_States_t SimState = LE_SIM_READY;
 static char HomeMcc[LE_MRC_MCC_BYTES] = PA_SIMU_SIM_DEFAULT_MCC;
@@ -220,6 +221,24 @@ le_result_t pa_sim_SelectCard
 {
     LE_ASSERT(sim == SelectedCard);
 
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function gets sim selection mode.
+ *
+ * @return LE_FAULT         The function failed.
+ * @return LE_TIMEOUT       No response was received.
+ * @return LE_OK            The function succeeded.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sim_GetSimMode
+(
+    le_sim_SimMode_t*  simModePtr     ///< [OUT] The SIM selection mode
+)
+{
+    *simModePtr = SimSelectionMode;
     return LE_OK;
 }
 
