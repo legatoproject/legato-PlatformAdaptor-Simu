@@ -168,6 +168,20 @@ static le_event_Id_t JammingDetectionEventId;
 
 //--------------------------------------------------------------------------------------------------
 /**
+ * This event is reported when a Rank indication is received from the modem.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_event_Id_t RankChangeEventId;
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Pool for Rank indication reporting.
+ */
+//--------------------------------------------------------------------------------------------------
+static le_mem_PoolRef_t RankChangePool;
+
+//--------------------------------------------------------------------------------------------------
+/**
  * This function determine if the tupple (rat,mcc,mnc) is currently provided by the simulation.
  */
 //--------------------------------------------------------------------------------------------------
@@ -1545,6 +1559,9 @@ le_result_t mrc_simu_Init
     // Create the pool for cells information.
     CellInfoPool =  le_mem_CreatePool("CellInfoPool",  sizeof(pa_mrc_CellInfo_t));
 
+    RankChangeEventId = le_event_CreateIdWithRefCounting("RankChangeEvent");
+
+    RankChangePool = le_mem_CreatePool("RankChangePool", sizeof(pa_mrc_RankIndication_t));
     return LE_OK;
 }
 
@@ -1886,4 +1903,143 @@ pa_mrc_CellInfo_t* pa_mrc_AllocateCellInfo
         (pa_mrc_CellInfo_t*)le_mem_ForceAlloc(CellInfoPool);
 
     return cellInfoPtr;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Enable or disable monitoring on Rank change indicate . By default, monitoring is disabled.
+ *
+ * @return
+ * - LE_FAULT         The function failed.
+ * - LE_OK            The function succeeded.
+ * - LE_UNSUPPORTED   The feature is not supported.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_SetRankChangeMonitoring
+(
+    bool enable       ///< [IN] If monitoring should be enabled.
+)
+{
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to register a handler for Rank Indicator change handling.
+ *
+ * @return A handler reference, which is only needed for later removal of the handler.
+ *
+ * @note Doesn't return on failure, so there's no need to check the return value for errors.
+ */
+//--------------------------------------------------------------------------------------------------
+le_event_HandlerRef_t pa_mrc_AddRankChangeHandler
+(
+    pa_mrc_RankChangeHdlrFunc_t handlerFuncPtr ///< [IN] The handler function.
+)
+{
+    LE_ASSERT(handlerFuncPtr != NULL);
+
+    return le_event_AddHandler("RankChangeHandler",
+                               RankChangeEventId,
+                               (le_event_HandlerFunc_t) handlerFuncPtr);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function must be called to unregister the handler for Rank Indicator change
+ * handling.
+ *
+ * @note Doesn't return on failure, so there's no need to check the return value for errors.
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_mrc_RemoveRankChangeHandler
+(
+    le_event_HandlerRef_t handlerRef
+)
+{
+    le_event_RemoveHandler(handlerRef);
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This function gets the Radio Band currently in use.
+ *
+ * @return
+ * - LE_OK              On success
+ * - LE_FAULT           On failure
+ * - LE_UNSUPPORTED  The feature is not supported.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_GetRadioBandInUse
+(
+    uint32_t*   bandPtr    ///< [OUT] The Radio Band.
+)
+{
+    LE_ASSERT(bandPtr != NULL);
+
+    *bandPtr = UINT32_MAX;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Retrieves the LTE Data modulation and coding scheme for the physical multicast channel.
+ *
+ * @return
+ *  - LE_OK             The function succeeded.
+ *  - LE_FAULT          The function failed.
+ *  - LE_UNSUPPORTED    The feature is not supported.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_GetLteEmbmsInfo
+(
+    uint8_t* mcs    ///< [OUT] The mcs value.
+)
+{
+    LE_ASSERT(mcs != NULL);
+
+    *mcs = UINT8_MAX;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Retrieves the detailed TX power information.
+ *
+ * @return
+ *  - LE_OK             The function succeeded.
+ *  - LE_FAULT          The function failed.
+ *  - LE_UNSUPPORTED    The feature is not supported.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_GetTxPowerInfo
+(
+    int32_t* txPwr    ///< [OUT] The TX Power value.
+)
+{
+    LE_ASSERT(txPwr != NULL);
+
+    *txPwr = UINT32_MAX;
+    return LE_OK;
+}
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * This command gets LTE CQI
+ *
+ * @return
+ *  - LE_OK             The function succeeded.
+ *  - LE_FAULT          The function failed.
+ *  - LE_UNSUPPORTED    The feature is not supported.
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_mrc_GetLteCqi
+(
+    uint32_t* cqi    ///< [OUT] The cqi value.
+)
+{
+    LE_ASSERT(cqi != NULL);
+
+    *cqi = UINT32_MAX;
+    return LE_OK;
 }
