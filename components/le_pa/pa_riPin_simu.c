@@ -206,3 +206,19 @@ void pa_riPin_Set
     return ;
 }
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set V24 RI signal for MUX ports
+ *
+ * @return none
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_riPin_SetV24RIMux
+(
+    int signal          ///< [IN] Signal to set
+)
+{
+    LE_UNUSED(signal);
+
+    return;
+}
