@@ -222,3 +222,20 @@ void pa_riPin_SetV24RIMux
 
     return;
 }
+
+//--------------------------------------------------------------------------------------------------
+/**
+ * Enable/disable RI on PPP traffic
+ *
+ * @return none
+ */
+//--------------------------------------------------------------------------------------------------
+void pa_riPin_SetRiPpp
+(
+    int value           ///< [IN] Value to enable when none zero, otherwise disable RI on PPP
+)
+{
+    LE_UNUSED(value);
+
+    return;
+}
