@@ -257,5 +257,24 @@ void pa_simSimu_SetSIMAccessTest
     bool testInProgress
 );
 
-#endif // PA_SIM_SIMU_H_INCLUDE_GUARD
+//--------------------------------------------------------------------------------------------------
+/**
+ * Get Hardware config
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sim_GetHwConfigHandler
+(
+    le_sim_SimDetCfg_t* config      ///< [OUT] Pointer of Sim detect config structure
+);
 
+//--------------------------------------------------------------------------------------------------
+/**
+ * Set Hardware config
+ */
+//--------------------------------------------------------------------------------------------------
+le_result_t pa_sim_SetHwConfigHandler
+(
+    const le_sim_SimDetCfg_t *config    ///< [IN] Pointer of Sim detect config structure
+);
+
+#endif // PA_SIM_SIMU_H_INCLUDE_GUARD
